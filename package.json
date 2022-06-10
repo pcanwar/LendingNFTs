@@ -7,5 +7,9 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.8",
     "hardhat": "^2.9.9"
+  },
+  "dependencies": {
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.31"
   }
 }

@@ -28,6 +28,7 @@ ERC721(name, symbol)
 }
 
 function setRoot(bytes32 root_) public {
+    // root has to be signed by the lender
     uint256 tokenId = _tokenIdCounter.current();
     _tokenIdCounter.increment();
     _root[tokenId].root = root_;
@@ -45,20 +46,19 @@ function safeMint(address to) private  {
 function redeem(address account, uint256 time_,  bytes32[] calldata proof)
     external
     {
-        require(counterPayment[1] == _tokenIdCounter.current());
-        require(time_ > block.timestamp);
-        // uint256 _IdCounter = _tokenIdCounter.current();
-        counterPayment[1] = _tokenIdCounter.current();
-        require(_verify(_leaf(account, time_),counterPayment[1], proof), "Invalid merkle proof");
-        require(account==msg.sender,"not owner" );
-        _tokenIdCounter.increment();
+        // require(account==_root[1].brower,"not owner" );
+        // require(counterPayment[1] == _tokenIdCounter.current());
+        require(time_ >= block.timestamp);
+        // counterPayment[1] = _tokenIdCounter.current();
+        require(_verify(_leaf(time_, counterPayment[1]),counterPayment[1], proof), "Invalid merkle proof");
+        // _tokenIdCounter.increment();
         safeMint(account);
     }
 
-    function _leaf(address account, uint256 time_)
+    function _leaf( uint256 time, uint256 counter)
     internal pure returns (bytes32)
     {
-        return keccak256(abi.encodePacked(time_, account));
+        return keccak256(abi.encodePacked(time, counter));
     }
 
     function _verify(bytes32 leaf, uint256 _IdCounter, bytes32[] memory proof)
