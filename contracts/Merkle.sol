@@ -47,20 +47,20 @@ function safeMint(address to) private  {
     _safeMint(to, tokenId);
 }
 
-function redeem(address account, uint256 time_,  bytes32[] calldata proof)
+function redeem(address account, uint256 term, uint256 [] calldata time_,  bytes32[] calldata proof)
     external
     {
         // require(account==_root[1].brower,"not owner" );
         // require(counterPayment[1] == _tokenIdCounter.current());
-        require(time_ >= block.timestamp, "expired");
-        uint256 counterPayment = _tokenIdCounter.current();
-        require(_verify(_leaf(counterPayment , time_), proof), "Invalid merkle proof");
-        _tokenIdCounter.increment();
+        require(time_[0] > block.timestamp, "expired");
+        // uint256 counterPayment = _tokenIdCounter.current();
+        require(_verify(_leaf(term , time_), proof), "Invalid merkle proof");
+        // _tokenIdCounter.increment();
         safeMint(account);
     }
 
-    function _leaf( uint256 counter, uint256 time)
-    internal pure returns (bytes32)
+    function _leaf( uint256 counter, uint256 [] calldata time)
+    public pure returns (bytes32)
     {
         return keccak256(abi.encodePacked(counter, time));
     }

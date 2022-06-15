@@ -1,40 +1,50 @@
-// const { ethers } = require('hardhat');
-// const { MerkleTree } = require('merkletreejs');
-// const keccak256 = require('keccak256');
-// const { expect } = require('chai');
-// const times = require('./pay.json');
+const { ethers } = require('hardhat');
+const { MerkleTree } = require('merkletreejs');
+const keccak256 = require('keccak256');
+const { expect } = require('chai');
+const times = require('./pay.json');
 
-// function hashToken(counter, time ) {
-//   // console.log("x-: ",  ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256'], [counter, time[0],time[1],time[2]]));
-//   // console.log("x-: ", time[2], ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256'], [counter, time[0],time[1],time[2]]));
-//   return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256'], [counter, time[0],time[1],time[2]]).slice(2), 'hex')
-// }
+function hashToken(counter, time ) {
+  return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256'], [counter, time[0],time[1],time[2]]).slice(2), 'hex')
+}
 
 
 
 
 
 
-// describe('Merkle', function () {
-//   it("Test mint White List  ", async function () {
-//   // accounts = await ethers.getSigners();
-//   // const [owner, buyer1, buyer2, buyer3, buyer4] = await ethers.getSigners();
-//   // r = Object.entries(times).map(times => hashToken(...times));
-//   //   console.log("R :", r);
-//   merkleTree = new MerkleTree(Object.entries(times).map(times => hashToken(...times)), keccak256, { sortPairs: true }); 
-//   // console.log('merkleTree: ', merkleTree);
-//   let token = {};
-//   cal = {};
-//   // let root ;
+describe('Merkle', function () {
+  it("Merkle contract Test mint  ", async function () {
+    accounts = await ethers.getSigners();
+    const [owner, buyer1, buyer2, buyer3, buyer4] = await ethers.getSigners();
+    // root hash
+    const  leaf = Object.entries(times).map(times => hashToken(...times)); 
+    console.log("leaf: ", leaf);
+    const merkleTree = new MerkleTree(leaf, keccak256,{sortPairs: true})
+    const root = merkleTree.getHexRoot()
+    console.log("root", root);
+    const payFirstMonth = merkleTree.getHexProof(leaf[0]);
+    console.log("pay First Month : ", payFirstMonth);
+
+    const instance = await ethers.getContractFactory("Merkle");
+    registry = await instance.deploy('Name', 'Symbol');
+    await registry.deployed();
+
+    await registry.connect(owner).setRoot(merkleTree.getHexRoot())
+    await registry.connect(owner).redeem(owner.address, 0,["1655338240","25000","0"], payFirstMonth)
+    
+    await registry.balanceOf(owner.address).then(res=>{
+        console.log("balanceOf ", res);
+    });
 
 //   for (const [ counter, time] of Object.entries(times)){
-//     console.log("counters and times: ", counter, time[0], time[1]);
+//     // console.log("counters and times: ", counter, time[0], time[1]);
 
-//     root = merkleTree.getHexRoot(hashToken( counter, time))
+//     root = merkleTree.getHexRoot()
 //     console.log(root);
 //     token.proof = merkleTree.getHexProof(hashToken( counter, time));
 //     console.log('proof', token.proof);
-//     [cal.counter, cal.time ] = Object.entries(times).find(Boolean);
+//     // [cal.counter, cal.time ] = Object.entries(times).find(Boolean);
 //     // hashToken(cal.counter, cal.time)
 
 //     // console.log("counter: ", cal.counter);
@@ -43,12 +53,7 @@
 //     // console.log( "interest: ", cal.time[2]);
 //     // cal.proof = merkleTree.getHexProof(hashToken(counter, cal.time ))
 //    }
-//   //  console.log('token', token.proof);
-//   //  console.log('root:- ', root);
-//   //  console.log('tome:- ', time);
-
-
- 
+  
 //   // cal.proof = merkleTree.getHexProof(hashToken(cal.time, cal.counter))
 //   // console.log("counter: ", cal.counter);
 //   // console.log("time: ", cal.time[0]);
@@ -96,6 +101,6 @@
 //     // });
 
     
-//   });
+  });
 
-// });
+});
