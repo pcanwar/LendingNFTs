@@ -15,4 +15,8 @@ contract NFT721 is ERC721, Ownable {
         _tokenIdCounter.increment();
         _safeMint(msg.sender, tokenId);
     }
+
+    // function totalSupply() public view returns (uint256) {
+    //     return _tokenIdCounter.current();
+    // }
 }

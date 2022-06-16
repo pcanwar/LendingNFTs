@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
+
+
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -15,6 +20,7 @@ import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract SwopXLendingAssets is EIP712 {
+
     /* 
     SwopXLendingAssets is for lenders to sign a message  
     */
@@ -82,7 +88,7 @@ contract SwopXLendingAssets is EIP712 {
 
 }
 
-contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
+contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
 
     using Counters for Counters.Counter;
     Counters.Counter private _IdCounter;  
@@ -140,7 +146,7 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
     event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
 
-    constructor() {
+    constructor() ERC721("NFT721", "NFT"){
         txfee = 200; // fees
         // maximumTenure = 12; // 12 months
         extendedTime = 30 days; // 30 days
@@ -184,28 +190,29 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
 
     // return the assets 
     function assets(uint256 counterId) public view returns (
-        address _paymentAddress,
-        uint256 _listingTime,
-        uint256 _loanTerm,
-        address _lender,
-        address _nftOwner,
-        address _nftContractAddress,
-        uint256 _nftTokenId,
-        uint256 _loanAmount, uint256 _lendCost, uint256 _feesCost,
-        uint256 _payAmountAfterLoan,bool _isPaid) {
+        address paymentAddress,
+        uint256 listingTime,
+        uint256 loanTerm,
+        address lender,
+        address nftOwner,
+        address nftContractAddress,
+        uint256 nftTokenId,
+        uint256 loanAmount, uint256 lendCost, uint256 feesCost,
+        uint256 payAmountAfterLoan, uint256 payBackAfterLoan, bool isPaid) {
 
-        _paymentAddress = _assets[counterId].paymentContract;
-        _listingTime = _assets[counterId].listingTime;
-        _loanTerm = _assets[counterId].loanTerm;
-        _lender = _assets[counterId].lender;
-        _nftOwner = _assets[counterId].nftOwner;
-        _nftContractAddress = _assets[counterId].nftcontract;
-        _nftTokenId = _assets[counterId].nftTokenId;
-        _loanAmount = _assets[counterId].loanCost;
-        _lendCost = _assets[counterId].loanAmount;
-        _feesCost = calculatedFee(_lendCost);
-        _payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
-        _isPaid = _assets[counterId].isPaid;
+        paymentAddress = _assets[counterId].paymentContract;
+        listingTime = _assets[counterId].listingTime;
+        loanTerm = _assets[counterId].loanTerm;
+        lender = _assets[counterId].lender;
+        nftOwner = _assets[counterId].nftOwner;
+        nftContractAddress = _assets[counterId].nftcontract;
+        nftTokenId = _assets[counterId].nftTokenId;
+        loanAmount = _assets[counterId].loanCost;
+        lendCost = _assets[counterId].loanAmount;
+        feesCost = calculatedFee(lendCost);
+        payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
+        payBackAfterLoan = _assets[counterId].payBackAfterLoan;
+        isPaid = _assets[counterId].isPaid;
     }
       
     // verify the signature
@@ -229,13 +236,9 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
     // _loanTerm is number of months
     
    function submit(uint256 [2] calldata nonceLoanTerm, address _paymentAddress, address _lender, 
-                    address _nftcontract, uint256 _nftTokenId, uint256 [2] calldata _loanAmounLoanCost,
-                    // uint256 _loanAmount, uint256 _loanCost,
-                    // uint256 _loanTerm,
-                      uint256 _offeredTime, 
-                    bytes32 _root, bytes calldata signature) 
+                address _nftcontract, uint256 _nftTokenId, uint256 [2] calldata _loanAmounLoanCost,
+                uint256 _offeredTime, bytes32 _root, bytes calldata signature) 
         public whenNotPaused nonReentrant supportInterface(_paymentAddress) 
-        // expiredTime(nonceLoanTerm[1])
        {
         
         LendingAssets memory _m = LendingAssets({
@@ -261,11 +264,11 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
         require(_verify(_m.lender, _hashLending(nonceLoanTerm[0],
             _m.paymentContract,_offeredTime,_m.loanAmount,_m.loanTerm,_m.loanCost,_m.nftcontract,
             msg.sender,_m.nftTokenId,_m.root)
-            ,signature),"signature");
+            ,signature),"Invalid signature");
         
-        // verifyIt(_m.lender, nonce, _m.paymentContract,_m.loanAmount,
-        // _m.nftcontract, msg.sender,_m.nftTokenId,_m.loanTerm,_m.loanCost, _offeredTime, _m.root, signature);
         uint256 counterId = counter();
+        _safeMint(msg.sender, counterId) ;
+
         _assets[counterId] = _m;
         _transferNft(_nftcontract, msg.sender , _nftTokenId);
         IERC20(_m.paymentContract).safeTransferFrom(_m.lender, owner(), fees_);
@@ -286,19 +289,20 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
     // make payment before time expired
     function makePayment(uint256 _counterId, uint256 term_, 
     uint256[] calldata time, bytes32[] calldata proof) external nonReentrant {
+        
         _termOf[_counterId] = _termId.current();
         require(term_ == _termOf[_counterId],"term does not matched");
         LendingAssets memory _m = _assets[_counterId];
-        require(_m.nftOwner == msg.sender,"Only NFT owner");
+        // require(_m.nftOwner == msg.sender,"Only NFT owner");
+        require(ownerOf(_counterId) == msg.sender,"Only NFT owner");
         require(_m.isPaid != true, "is paid already");
         require(time[0] >= block.timestamp, "expired");
         uint256 _time = clockTimeStamp();
         require(_m.loanTerm  >= _time, "Default"); // expired time check 
         address contractOwner  = owner();
-        require(_verifyTree(_leaf(term_ , time), proof, _m.root), "Invalid merkle proof");
+        require(_verifyTree(_leaf(term_ , time), proof, _m.root), "Invalid proof");
         _termId.increment();
         // // _assets[_counterId].payAmountAfterLoan -= loanAmountInterest;
-
 
         uint256 _fees = calculatedFee(_m.loanAmount);
         // uint256 amountToPay = _m.payAmountAfterLoan;
@@ -308,6 +312,7 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, _m.lender, (time[1] + time[2]) - _fees);
         _assets[_counterId].payBackAfterLoan+= (time[1] + time[2]);
         if (_m.payBackAfterLoan >= _m.payAmountAfterLoan ){
+            _burn(_counterId);
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
             _assets[_counterId].isPaid = true;
         }
@@ -425,9 +430,9 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
         return IERC721(_nftcontract).ownerOf(tokenId);
     }
 
-    function totalSupply() public view returns (uint256 _allTokens) {
-        return _allTokens = _IdCounter.current() ;
-    }
+    // function totalSupply() public view returns (uint256 _allTokens) {
+    //     return _allTokens = _IdCounter.current() ;
+    // }
 
     function _leaf(uint256 term, uint256 [] calldata time)
     public pure returns (bytes32)
@@ -444,6 +449,53 @@ contract SwopXLending is Ownable, ReentrancyGuard, IERC721Receiver, SwopXLending
 
     function onERC721Received(address , address , uint256 , bytes memory) external pure override returns (bytes4){
         return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIdCounter;
+
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "http://swopx.com";
+    }
+
+  
+
+    // The following functions are overrides required by Solidity.
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal
+        override(ERC721)
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
+
+    function totalSupply() public view  returns (uint256) {
+        return _tokenIdCounter.current();
     }
 
 }
