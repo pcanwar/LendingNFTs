@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
-
-
-
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -91,14 +88,11 @@ contract SwopXLendingAssets is EIP712 {
 contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
 
     using Counters for Counters.Counter;
-    Counters.Counter private _IdCounter;  
-    Counters.Counter private _termId;     
-    // mapping(uint256 => uint256) private _termOf;
-
     using SafeERC20 for IERC20;
+    Counters.Counter private _IdCounter;  
+    Counters.Counter private _termId;  
     uint256 private txfee;
-    uint256 private extendedTime;
-    // uint256 private maximumTenure;
+    string private _baseMetadata;
 
     struct LendingAssets {
         address paymentContract;
@@ -135,9 +129,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         uint256 payAmountAfterLoan
     );
 
-    // event CancelLog(address indexed lender, address nftAdress, uint256 tokenId, bool IsUninterested);
-
-    event CancelLog(address indexed lender, uint256 tokenId, bool IsUninterested);
+    event CancelLog(address indexed lender, uint256 nonce, bool IsUninterested);
     event WithdrawLog(address indexed contracts, address indexed account, uint amount);
     
     event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address  lender,address borrower, uint256 _loanTerm, uint256 cost );
@@ -149,8 +141,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
 
     constructor() ERC721("NFT721", "NFT"){
         txfee = 200; // fees
-        // maximumTenure = 12; // 12 months
-        extendedTime = 30 days; // 30 days
     }
 
 
@@ -308,9 +298,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         address contractOwner  = owner();
         _assets[_counterId].termId++; 
         // // _assets[_counterId].payAmountAfterLoan -= loanAmountInterest;
-
         require(calculatedFee(_m.loanAmount) <= fee_, "fees");
-        
         
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= time[1] + time[2],"Not enough allowance" );
         _assets[_counterId].payBackAfterLoan += time[1] + time[2] ;
@@ -323,7 +311,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
             _assets[_counterId].isPaid = true;
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         }
-        // }
         emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, _m.lender, _m.payAmountAfterLoan, 0); //, _fees);
     }
 
@@ -373,11 +360,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         fee = callItFee / 2e4;
     }
 
-   
-
-    function _extendTimeRole(uint256 _days) public onlyOwner {
-        extendedTime = 1 days * _days;
-    }
 
    // lender or borrower can extend the time with a new cost they need to submit.
    function extendTheTime(uint256 _counterId, uint256 cost, uint256 loanTerm, bytes32 root ,bytes calldata signature) 
@@ -385,7 +367,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         LendingAssets memory _m = _assets[_counterId];
         require(_m.nftOwner == msg.sender ,"Owner Only");
 
-        // uint256 _extendTime = extendedTime;
         // uint256 _time = clockTimeStamp();
         // require(_m.loanTerm - _extendTime >= _time,"No Extended Time");
         // require(_m.isPaid != true,"Paid");
@@ -403,7 +384,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
 
         // _assets[_counterId].payAmountAfterLoan = requredpayment + cost;
         // _assets[_counterId].loanAmount += cost;
-        // uint _timeRequired = calculatedTimeExpired(_loanTerm);
         _assets[_counterId].loanTerm = loanTerm;
         emit ExtendTimeLog(
             _counterId, 
@@ -417,9 +397,9 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
 
     
     // to get calculate expired time that based on the number of months 
-    function calculatedTimeExpired(uint256 _month) private pure returns(uint256) {
-        return 30 days * _month;
-    }
+    // function calculatedTimeExpired(uint256 _month) private pure returns(uint256) {
+    //     return 30 days * _month;
+    // }
 
 
     function withdraw(address _contract, address _to, uint256 _amount) external onlyOwner {
@@ -460,16 +440,15 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
 
-    using Counters for Counters.Counter;
-
-    Counters.Counter private _tokenIdCounter;
-
-
-    function _baseURI() internal pure override returns (string memory) {
-        return "http://swopx.com";
+   
+    function setBaseURI(string calldata baseURI_) external   {
+        _baseMetadata = baseURI_;
     }
 
-  
+    function baseURI() external view returns (string memory) {
+        return _baseMetadata;
+    }
+
 
     // The following functions are overrides required by Solidity.
 
@@ -504,7 +483,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
 
 
     function totalSupply() public view  returns (uint256) {
-        return _tokenIdCounter.current();
+        return _IdCounter.current() ;
     }
 
 }
