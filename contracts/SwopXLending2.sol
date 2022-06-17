@@ -130,6 +130,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     );
 
     event CancelLog(address indexed lender, uint256 nonce, bool IsUninterested);
+    
     event WithdrawLog(address indexed contracts, address indexed account, uint amount);
     
     event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address  lender,address borrower, uint256 _loanTerm, uint256 cost );
@@ -137,10 +138,11 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 amount, uint fee );
     
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
+    
     event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
 
-    constructor() ERC721("NFT721", "NFT"){
-        txfee = 200; // fees
+    constructor() ERC721("SwopX Lending", "SWING"){
+        txfee = 200;
     }
 
 
@@ -251,7 +253,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         nftTokenId:_nftTokenId,
         root: _root
         });
-        require(_ownerOf(_m.nftcontract, _m.nftTokenId) == msg.sender ,"Not Owner");
+        require(IERC721(_m.nftcontract).ownerOf( _m.nftTokenId) == msg.sender ,"Not Owner");
         require(identifiedSignature[_m.lender][nonceLoanTerm[0]] != true, "Lender is not interested");
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(IERC20(_m.paymentContract).allowance(_m.lender, address(this)) >= _m.loanAmount, "Not enough allowance" );
@@ -415,16 +417,8 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     }
 
 
-    function _ownerOf(address _nftcontract, uint256 tokenId ) private view returns(address) {
-        return IERC721(_nftcontract).ownerOf(tokenId);
-    }
-
-    // function totalSupply() public view returns (uint256 _allTokens) {
-    //     return _allTokens = _IdCounter.current() ;
-    // }
-
     function _leaf(uint256 term, uint256 [] calldata time)
-    public pure returns (bytes32)
+    private pure returns (bytes32)
     {
         return keccak256(abi.encodePacked(term, time));
     }
@@ -432,7 +426,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     function _verifyTree(bytes32 leaf, bytes32[] memory proof, bytes32 root)
     private pure returns (bool)
     {
-        // bytes32 root = _root[_IdCounter].root;
         return MerkleProof.verify(proof, root, leaf);
     }
 
@@ -441,7 +434,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     }
 
    
-    function setBaseURI(string calldata baseURI_) external   {
+    function setBaseURI(string calldata baseURI_) external  onlyOwner {
         _baseMetadata = baseURI_;
     }
 
