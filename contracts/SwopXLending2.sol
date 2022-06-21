@@ -211,14 +211,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         isPaid = _assets[counterId].isPaid;
     }
       
-    // verify the signature
-    // function verifyIt( address verifer, uint256 nonce, address paymentContract, uint256 _loanAmount,
-    // address _nftcontract,address nftowner, uint256 tokenID,uint256 loanTerm,uint256 cost,uint256 offeredTime, bytes32 _root, bytes calldata signature) private view {
-    //     require(_verify(verifer, _hashLending(nonce,
-    //         paymentContract,_loanAmount, _nftcontract,
-    //         nftowner,tokenID,loanTerm,cost,offeredTime,_root)
-    //         ,signature),"signature"); 
-    // }
 
     // counter 
     function counter() private returns(uint256 counterId){
@@ -295,7 +287,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         // require(_m.nftOwner == msg.sender,"Only NFT owner");
         require(ownerOf(_counterId) == msg.sender,"Only NFT owner");
         require(_m.isPaid != true, "is paid already");
-        require(time[0] >= _time, "expired");
+        require(time[0] >= _time, "Default");
         // require(_m.loanTerm  >= _time, "Default"); // expired time check 
         address contractOwner  = owner();
         _assets[_counterId].termId++; 
@@ -317,30 +309,28 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     }
 
    
-
-
     function clockTimeStamp() private view returns(uint256 x){
         x = block.timestamp;
     }
 
     // default NFT 
     function defaultAsset(uint256 _counterId, uint256 term_, 
-    uint256[] calldata time, bytes32[] calldata proof) external nonReentrant  {
+    uint256[] calldata time, uint256 fee_, bytes32[] calldata proof) external nonReentrant  {
         address contractOwner  = owner();
         uint256 _time = clockTimeStamp();
         LendingAssets memory _m = _assets[_counterId];
         require(_verifyTree(_leaf(term_ , time), proof, _m.root), "Invalid proof");
         require(_m.lender == msg.sender);
         require(_m.isPaid != true, "is paid already");
-        require(_m.loanTerm  < term_ && _time  < time[0],"Check the Term");
+        // require(time[0] >= _time, "Default");
+        require(_m.loanTerm  > term_ && _time  > time[0],"Check the Term");
         // require(_time  < time[0],"Check the Time");
-        uint256 _fees = calculatedFee(_m.loanAmount);
-        require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= _fees,"Not enough allowance" );
-
+        require(fee_ >= calculatedFee(_m.loanAmount),"fee");
+        require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         _burn(_counterId);
-        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, _fees);
+        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, fee_);
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit DefaultLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, _fees);
+        emit DefaultLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, fee_);
     }
 
     // only lender can cancel their offer usin their nonces
@@ -367,12 +357,10 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
    function extendTheTime(uint256 _counterId, uint256 cost, uint256 loanTerm, bytes32 root ,bytes calldata signature) 
    nonReentrant external {
         LendingAssets memory _m = _assets[_counterId];
-        require(_m.nftOwner == msg.sender ,"Owner Only");
+        // require(_m.nftOwner == msg.sender ,"Owner Only");
+        require(ownerOf(_counterId) == msg.sender,"Only NFT owner");
 
-        // uint256 _time = clockTimeStamp();
-        // require(_m.loanTerm - _extendTime >= _time,"No Extended Time");
-        // require(_m.isPaid != true,"Paid");
-        // require(_m.payAmountAfterLoan > 0,"Amount");
+      
 
         require(_verify(_m.lender, _hashextend(_m.nftcontract,_m.nftTokenId,
               loanTerm, cost, root)
@@ -396,12 +384,6 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
           _m.loanTerm,
           _m.loanAmount);
     }
-
-    
-    // to get calculate expired time that based on the number of months 
-    // function calculatedTimeExpired(uint256 _month) private pure returns(uint256) {
-    //     return 30 days * _month;
-    // }
 
 
     function withdraw(address _contract, address _to, uint256 _amount) external onlyOwner {

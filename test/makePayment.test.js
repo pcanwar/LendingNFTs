@@ -77,7 +77,7 @@ describe("Landing", function () {
       console.log("root", root);
       const proofFirstMonth = merkleTree.getHexProof(leaf[0]);
       const term = Number(0);
-      const time = ["1655509803","12000000000000000000","0"];
+      const time = ["1655400000","12000000000000000000","0"];
       // signture 
       let {chainId:chainid} = await ethers.provider.getNetwork();
   
@@ -167,9 +167,9 @@ describe("Landing", function () {
     const u20Tokenborrower = await u20.connect(borrower).approve(swopXLanding.address, borrowerAmountApprove);
     await u20Tokenborrower.wait();
 
-    const makePayment = await swopXLanding.connect(borrower).makePayment(1, term, 
-    time,borrowerfee,proofFirstMonth);
-    await makePayment.wait();
+    // const makePayment = await swopXLanding.connect(borrower).makePayment(1, term, 
+    // time,borrowerfee,proofFirstMonth);
+    // await makePayment.wait();
 
     await u20.connect(owner).balanceOf(owner.address).then(res=>{
         console.log("first payment owner balance ", res)
@@ -191,7 +191,22 @@ describe("Landing", function () {
 
     await nft721.connect(borrower).ownerOf(1).then(res=>{
         console.log("owner of NFT ", res);
-      })
+      });
+    console.log("________________________________________________________________");
 
+    const u20Tokenlender = await u20.connect(lender).approve(swopXLanding.address, borrowerAmountApprove);
+    await u20Tokenlender.wait();
+
+    const time1 = ["1655400000","12000000000000000000","0"];
+
+    const defaultAsset = await swopXLanding.connect(lender).defaultAsset(1, term, 
+        time1,borrowerfee,proofFirstMonth);
+        await defaultAsset.wait();
+    
+    console.log("lenderAddress__________________________________________________________");
+
+    await nft721.connect(borrower).ownerOf(1).then(res=>{
+            console.log("owner of NFT ", res);
+          });
     });
   });
