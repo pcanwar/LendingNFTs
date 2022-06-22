@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
+
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -72,6 +73,7 @@ contract SwopXLendingAssets is EIP712 {
             nftcontract,
             nftTokenId,
             loanTerm,
+            offerTime,
             cost,
             gist
         )));
@@ -136,7 +138,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
     
     event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 _loanTerm, uint256 payAmountAfterLoan, bytes32 gist  );
     
-    event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 amount, uint fee );
+    event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint fee, bytes32 [] proof );
     
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
     
@@ -152,10 +154,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         _;
     }
 
-    // modifier expiredTime(uint256 _loanTerm) {
-    //     require(_loanTerm <= maximumTenure && _loanTerm >= 1, "It can't be more than maximum tenure value"); // add months number
-    //     _;
-    // }
+  
     // only owner of the contract is allowed to change fees
     function resetTxFee(uint256 _fee) public onlyOwner { 
         txfee = _fee;
@@ -312,7 +311,7 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
             _assets[_counterId].isPaid = true;
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         }
-        emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, _m.lender, _m.payAmountAfterLoan, 0); //, _fees);
+        emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, _m.lender, time[1] + time[2], fee_, proof); 
     }
 
    
@@ -320,7 +319,10 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
         x = block.timestamp;
     }
 
-    // default NFT 
+    // default NFT :
+    /*
+    submit nft id to check  
+    */
     function defaultAsset(uint256 _counterId, uint256 term_, 
     uint256[] calldata time, uint256 fee_, bytes32[] calldata proof) external nonReentrant  {
         address contractOwner  = owner();
@@ -380,9 +382,9 @@ contract SwopXLending2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Ree
             _m.nftTokenId,
             _m.lender,
             msg.sender,
-          _m.loanTerm,
-          _m.loanAmount,
-          gist);
+            _m.loanTerm,
+            _m.loanAmount,
+            gist);
     }
 
 
