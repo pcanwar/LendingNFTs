@@ -2,20 +2,29 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { MerkleTree } = require('merkletreejs');
 const keccak256 = require('keccak256');
-const times = require('./pay.json');
+const times = require('./loan.json');
 
-function hashToken(counter, time ) {
-  return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256'], [counter, time[0],time[1],time[2]]).slice(2), 'hex')
+// hashing ##########################################################################################
+
+/* hashing takes :
+  -the loan term eg 0,1,2,3,....
+  -the loan timestamp  eg 1656025191
+  -the loan payment in
+*/
+// (counter, timestamp, payment)
+function hashloan(counter, timestampPayment) {
+  return Buffer.from(ethers.utils.solidityKeccak256(['int256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[2]]).slice(2), 'hex')
 }
+//##########################################################################################
 
 describe("Landing", function () {
-    it("Should pass", async function () {
-     
+    it("submit", async function () {
+     // init
       const [owner, borrower, lender] = await ethers.getSigners();
-      
+       // deploy contracts
       const NFT721 = await ethers.getContractFactory("NFT721");
       const U20 = await ethers.getContractFactory("U20");
-      const SwopXLanding = await ethers.getContractFactory("SwopXLending2");
+      const SwopXLanding = await ethers.getContractFactory("SwopXLendingV2");
   
       const swopXLanding = await SwopXLanding.deploy();
       const u20 = await U20.deploy();
@@ -28,12 +37,13 @@ describe("Landing", function () {
       console.log("nft721 Address:", nft721.address);
       console.log("u20 Address:", u20.address);
       console.log("swopXLanding Address:", swopXLanding.address);
+      
+      // mint utility token
       await u20.connect(lender).mint();
-  
       await u20.connect(lender).balanceOf(lender.address).then(res=>{
         console.log("lender balance ", res)
       })
-  
+      // mint nft 
       await nft721.connect(borrower).safeMint();
       await nft721.connect(borrower).safeMint();
   
@@ -46,43 +56,38 @@ describe("Landing", function () {
       await swopXLandingERC20.wait();
       
     //##########################################################################################
-      // const amountLend = lendingAmount.toString();
-      // console.log("lendingAmount ", amountLend);
   
       // borrower needs to approve their nft before sending the submit function 
       // borrower can approve all nft or single appove 
       const approveToken = await nft721.connect(borrower).approve(swopXLanding.address, 1  );
       await approveToken.wait();
-  
-      // 15 eth as the amount of the nft
+      
+
+      // get the fees from the loan amount
       let Amountfee;
       const lendingAmount = ethers.utils.parseEther('10');
-      const cost = ethers.utils.parseEther('2');
-      await u20.connect(lender).transfer(borrower.address, ethers.utils.parseEther('4'));
-      // from the lender data, first, run calculatedFee of the lendingAmount
+
       await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
         Amountfee = res;
-        console.log(Amountfee);
         });
-      console.log(("fee:",  lendingAmount ));
+      console.log(("fee:",  Amountfee ));
+      const cost = ethers.utils.parseEther('5');
 
       // lander needs to approve USDT token that is equal to lendingAmount + Amountfee
       const u20Token = await u20.connect(lender).approve(swopXLanding.address, Amountfee+ lendingAmount);
       await u20Token.wait();
-  
-      //root:
-      const leaf = Object.entries(times).map(times => hashToken(...times)); 
+
+
+//create root before Sig ##########################################################################################
+
+      const leaf = Object.entries(times).map(times => hashloan(...times));
       const merkleTree = new MerkleTree(leaf, keccak256,{sortPairs: true})
       const root = merkleTree.getHexRoot()
       console.log("root", root);
-      const proofFirstMonth = merkleTree.getHexProof(leaf[0]);
-      const term = Number(0);
-      const time = ["1655400000","12000000000000000000","0"];
-      // signture 
+
+// create signture ##########################################################################################
+
       let {chainId:chainid} = await ethers.provider.getNetwork();
-  
-
-
 
       const signature = await lender._signTypedData(
         // Domain
@@ -94,50 +99,57 @@ describe("Landing", function () {
           },
           {
             Landing: [
-                {name: 'nonce', type: 'uint256'},
-                { name: 'paymentContract', type: 'address'},
-                { name: 'offeredTime', type: 'uint256'},
+                {name: 'nonce', type: 'uint256'}, // from the backend
+                { name: 'paymentContract', type: 'address'}, // erc20 address
+                { name: 'offeredTime', type: 'uint256'}, 
+                // offeredTime is a timestamp that should be in the future
                 { name: 'loanAmount', type: 'uint256'},
-                { name: 'loanTerm', type: 'uint256'},
                 { name: 'loanCost', type: 'uint256'},
                 { name: 'nftcontract', type: 'address'},
                 { name: 'nftOwner', type: 'address'},
                 { name: 'nftTokenId', type: 'uint256'},
-                { name: 'root', type: 'bytes32'},
+                { name: 'gist', type: 'bytes32'},
             ],
           },
           {
             nonce:Number(0),
             paymentContract:u20.address,
-            offeredTime: Number(1655504591),
+            offeredTime: Number(1656025191),
             loanAmount:lendingAmount,
-            loanTerm:Number(12),
             loanCost:cost,
             nftcontract:nft721.address,
             nftOwner:borrower.address,
             nftTokenId:Number(1),
-            root: root
+            gist: root
             
           },
         );
   
     console.log(' signature1, ', signature);
    
-    const _nonceLoanTerm = [Number(0),Number(12)];
+
+
+    // 
+    const _nonce = Number(0);
     const _paymentContract = u20.address;
     const _lender = lender.address ;
     const _nftcontract = nft721.address;
     const _nftTokenId = Number(1)
-    const _loanAmounLoanCost = [lendingAmount, cost, Amountfee ];
-    const _offeredTime  = Number(1655504591)  ;
-    // _root and  signature
+    const _loanAmounLoanCostFee = [lendingAmount, cost, Amountfee ];
+    const _offeredTime  = Number(1656025191)  ;
 
 
 
     const submitLanding = await swopXLanding.connect(borrower).submit(
-      _nonceLoanTerm, _paymentContract, _lender, 
-      _nftcontract, _nftTokenId, _loanAmounLoanCost,
-          _offeredTime,root, signature);
+      _nonce, _paymentContract, _lender, 
+      _nftcontract, _nftTokenId, _loanAmounLoanCostFee,
+      _offeredTime,root, signature);
+      
+    await submitLanding.wait();
+    console.log("________________________________________________________________");
+    await swopXLanding.connect(owner).assets(1).then(res=>{
+      console.log("assets ", res)
+    });
       
     await submitLanding.wait();
     console.log("________________________________________________________________");
@@ -167,46 +179,46 @@ describe("Landing", function () {
     const u20Tokenborrower = await u20.connect(borrower).approve(swopXLanding.address, borrowerAmountApprove);
     await u20Tokenborrower.wait();
 
-    // const makePayment = await swopXLanding.connect(borrower).makePayment(1, term, 
-    // time,borrowerfee,proofFirstMonth);
-    // await makePayment.wait();
+    const makePayment = await swopXLanding.connect(borrower).makePayment(1, term, 
+    time,borrowerfee,proofFirstMonth);
+    await makePayment.wait();
 
     await u20.connect(owner).balanceOf(owner.address).then(res=>{
         console.log("first payment owner balance ", res)
     })
 
-    await u20.connect(owner).balanceOf(borrower.address).then(res=>{
-        console.log("first payment borrower balance ", res)
-    })
+//     await u20.connect(owner).balanceOf(borrower.address).then(res=>{
+//         console.log("first payment borrower balance ", res)
+//     })
 
-  await  swopXLanding.connect(owner).balanceOf(borrower.address).then(res=>{
-    console.log("first payment NFT borrower balance ", res)
-    })
+//   await  swopXLanding.connect(owner).balanceOf(borrower.address).then(res=>{
+//     console.log("first payment NFT borrower balance ", res)
+//     })
 
-    console.log("________________________________________________________________");
-    await swopXLanding.connect(owner).assets(1).then(res=>{
-      console.log("assets ", res)
-    });
-    console.log("________________________________________________________________");
+//     console.log("________________________________________________________________");
+//     await swopXLanding.connect(owner).assets(1).then(res=>{
+//       console.log("assets ", res)
+//     });
+//     console.log("________________________________________________________________");
 
-    await nft721.connect(borrower).ownerOf(1).then(res=>{
-        console.log("owner of NFT ", res);
-      });
-    console.log("________________________________________________________________");
+//     await nft721.connect(borrower).ownerOf(1).then(res=>{
+//         console.log("owner of NFT ", res);
+//       });
+//     console.log("________________________________________________________________");
 
-    const u20Tokenlender = await u20.connect(lender).approve(swopXLanding.address, borrowerAmountApprove);
-    await u20Tokenlender.wait();
+//     const u20Tokenlender = await u20.connect(lender).approve(swopXLanding.address, borrowerAmountApprove);
+//     await u20Tokenlender.wait();
 
-    const time1 = ["1655400000","12000000000000000000","0"];
+//     const time1 = ["1655400000","12000000000000000000","0"];
 
-    const defaultAsset = await swopXLanding.connect(lender).defaultAsset(1, term, 
-        time1,borrowerfee,proofFirstMonth);
-        await defaultAsset.wait();
+//     const defaultAsset = await swopXLanding.connect(lender).defaultAsset(1, term, 
+//         time1,borrowerfee,proofFirstMonth);
+//         await defaultAsset.wait();
     
-    console.log("lenderAddress__________________________________________________________");
+//     console.log("lenderAddress__________________________________________________________");
 
-    await nft721.connect(borrower).ownerOf(1).then(res=>{
-            console.log("owner of NFT ", res);
-          });
+//     await nft721.connect(borrower).ownerOf(1).then(res=>{
+//             console.log("owner of NFT ", res);
+//           });
     });
   });
