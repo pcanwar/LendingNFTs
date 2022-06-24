@@ -21,6 +21,9 @@ describe("Landing", function () {
     it("submit", async function () {
      // init
       const [owner, borrower, lender] = await ethers.getSigners();
+      console.log("admin: ", owner.address);
+      console.log("borrower: ", borrower.address);
+      console.log("lender: ", lender.address);
        // deploy contracts
       const NFT721 = await ethers.getContractFactory("NFT721");
       const U20 = await ethers.getContractFactory("U20");
@@ -65,11 +68,11 @@ describe("Landing", function () {
 
       // get the fees from the loan amount
       let Amountfee;
-      const lendingAmount = ethers.utils.parseEther('10');
-
+      const lendingAmount = ethers.utils.parseEther('1');
+    
       await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
         Amountfee = res;
-        });
+    });
       console.log(("fee:",  Amountfee ));
       const cost = ethers.utils.parseEther('5');
 
@@ -85,6 +88,7 @@ describe("Landing", function () {
       const root = merkleTree.getHexRoot()
       console.log("root", root);
     const payFirstMonth = merkleTree.getHexProof(leaf[1]);
+    const paySecondMonth = merkleTree.getHexProof(leaf[2]);
 
 // create signture ##########################################################################################
 
@@ -180,7 +184,12 @@ describe("Landing", function () {
     const makePayment = await swopXLanding.connect(borrower).makePayment(1, 1, 
     loanTimestampLoanPayment,borrowerfee,payFirstMonth);
     await makePayment.wait();
-
+    console.log("________________________________________________________________");
+    const makePayment2 = await swopXLanding.connect(borrower).makePayment(1, 2, 
+        loanTimestampLoanPayment,borrowerfee,paySecondMonth);
+        await makePayment2.wait();
+        console.log("________________________________________________________________");
+    
     await u20.connect(owner).balanceOf(owner.address).then(res=>{
         console.log("first payment owner balance ", res)
     })
@@ -190,24 +199,23 @@ describe("Landing", function () {
       console.log("assets after payment", res)
     });
 
-//     await u20.connect(owner).balanceOf(borrower.address).then(res=>{
-//         console.log("first payment borrower balance ", res)
-//     })
+    await u20.connect(owner).balanceOf(borrower.address).then(res=>{
+        console.log("first payment borrower balance ", res)
+    })
 
-//   await  swopXLanding.connect(owner).balanceOf(borrower.address).then(res=>{
-//     console.log("first payment NFT borrower balance ", res)
-//     })
+  await  swopXLanding.connect(owner).balanceOf(borrower.address).then(res=>{
+    console.log("first payment NFT borrower balance ", res)
+    })
 
-//     console.log("________________________________________________________________");
-//     await swopXLanding.connect(owner).assets(1).then(res=>{
-//       console.log("assets ", res)
-//     });
-//     console.log("________________________________________________________________");
+    await swopXLanding.connect(owner).ownerOf(1).then(res=>{
+      console.log("owner of receipt NFT ", res)
+    });
+    console.log("________________________________________________________________");
 
-//     await nft721.connect(borrower).ownerOf(1).then(res=>{
-//         console.log("owner of NFT ", res);
-//       });
-//     console.log("________________________________________________________________");
+    await nft721.connect(borrower).ownerOf(1).then(res=>{
+        console.log("owner of NFT ", res);
+      });
+    console.log("________________________________________________________________");
 
 //     const u20Tokenlender = await u20.connect(lender).approve(swopXLanding.address, borrowerAmountApprove);
 //     await u20Tokenlender.wait();
