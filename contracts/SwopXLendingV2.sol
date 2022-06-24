@@ -322,7 +322,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         require(calculatedFee(_m.loanAmount) <= fee_, "fees");
         address contractOwner  = owner();
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimestampLoanPayment[1],"Not enough allowance" );
-        _assets[_counterId].termId++;        
+        // _assets[_counterId].termId++;       
         _assets[_counterId].payBackAfterLoan +=  loanTimestampLoanPayment[1] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, _m.lender,  loanTimestampLoanPayment[1]);
@@ -487,7 +487,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
     {
         return super.tokenURI(tokenId);
     }
-    
+
     function totalSupply() public view  returns (uint256) {
         return _IdCounter.current() ;
     }
