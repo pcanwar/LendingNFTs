@@ -111,7 +111,7 @@ describe("Landing", function () {
           {
             nonce:Number(0),
             paymentContract:u20.address,
-            offeredTime: Number(1656025191),
+            offeredTime: Number(1656094663),
             loanAmount:lendingAmount,
             loanCost:cost,
             nftcontract:nft721.address,
@@ -132,7 +132,8 @@ describe("Landing", function () {
     const _lender = lender.address ;
     const _nftcontract = nft721.address;
     const _nftTokenId = Number(1)
-    const _offeredTime  = Number(1656025191)  ;
+    const _offeredTime  = Number(1656094663)  ;
+
     let Amountfee2;
     await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
         Amountfee2 = res;
