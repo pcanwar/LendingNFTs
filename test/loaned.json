@@ -1,37 +1,43 @@
-{ "pre-pay": {
+{ 
+    "Per Payment": {
         "timestamp":1656011891,
         "Begining Balance":"5000",
         "Payment":"5400",
-        "Principal":"",
-        "Interest":"",
-        "End Balance":"" 
-            },
-   "1": {
+        "Principal":"5000",
+        "Interest":"400",
+        "End Balance":"0" 
+    },
+    "First Term": {
+        "timestamp":"1656011891",
+        "Begining Balance":"5000",
+        "Payment":"95",
+        "Principal":"73",
+        "Interest":"22",
+        "End Balance":"4927"
+    },
+    "Second Term": {
         "timestamp":1656011891,
-        "Begining Balance":5000,
-        "Payment":"",
-        "Principal":"",
-        "Interest":"",
-        "End Balance":"",
-        "ispaid": true
-            },
-    "2": {
-    "timestamp":1656011891,
-    "Begining Balance":5000,
-    "Payment":"",
-    "Principal":"",
-    "Interest":"",
-    "End Balance":"" },
-    "3": {
-    "timestamp":1656011891,
-    "Begining Balance":5000,
-    "Payment":"",
-    "Principal":"",
-    "Interest":"",
-    "End Balance":""},
-
-    "nft": {
+        "Begining Balance":"4927",
+        "Payment":"95",
+        "Principal":"73",
+        "Interest":"22",
+        "End Balance":"4854" 
+    },
+    "etc Term": {
+        "timestamp":1656011891,
+        "Begining Balance":"4854",
+        "Payment":"95",
+        "Principal":"73",
+        "Interest":"22",
+        "End Balance":"4781"},
+    "loan info": {
         "Smart contract": "",
-        "Token Id": ""
+        "Token Id": "",
+        "Loan Period in Year":"",
+        "Start date of Loan": "",
+        "Annual Interest Rate": "", 
+        "Number of term payment": "48",
+        "Total Interest": "",
+        "Total cost of Loan": ""
     }
-    }
+}

@@ -13,7 +13,7 @@ const times = require('./loan.json');
 */
 // (counter, timestamp, payment)
 function hashloan(counter, timestampPayment) {
-  return Buffer.from(ethers.utils.solidityKeccak256(['int256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[2]]).slice(2), 'hex')
+  return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[1]]).slice(2), 'hex')
 }
 //##########################################################################################
 
@@ -84,6 +84,7 @@ describe("Landing", function () {
       const merkleTree = new MerkleTree(leaf, keccak256,{sortPairs: true})
       const root = merkleTree.getHexRoot()
       console.log("root", root);
+    const payFirstMonth = merkleTree.getHexProof(leaf[1]);
 
 // create signture ##########################################################################################
 
@@ -101,8 +102,7 @@ describe("Landing", function () {
             Landing: [
                 {name: 'nonce', type: 'uint256'}, // from the backend
                 { name: 'paymentContract', type: 'address'}, // erc20 address
-                { name: 'offeredTime', type: 'uint256'}, 
-                // offeredTime is a timestamp that should be in the future
+                { name: 'offeredTime', type: 'uint256'},  // offeredTime is a timestamp that should be in the future
                 { name: 'loanAmount', type: 'uint256'},
                 { name: 'loanCost', type: 'uint256'},
                 { name: 'nftcontract', type: 'address'},
@@ -114,7 +114,7 @@ describe("Landing", function () {
           {
             nonce:Number(0),
             paymentContract:u20.address,
-            offeredTime: Number(1656025191),
+            offeredTime: Number(1656094663),
             loanAmount:lendingAmount,
             loanCost:cost,
             nftcontract:nft721.address,
@@ -136,7 +136,7 @@ describe("Landing", function () {
     const _nftcontract = nft721.address;
     const _nftTokenId = Number(1)
     const _loanAmounLoanCostFee = [lendingAmount, cost, Amountfee ];
-    const _offeredTime  = Number(1656025191)  ;
+    const _offeredTime  = Number(1656094663)  ;
 
 
 
@@ -148,14 +148,10 @@ describe("Landing", function () {
     await submitLanding.wait();
     console.log("________________________________________________________________");
     await swopXLanding.connect(owner).assets(1).then(res=>{
-      console.log("assets ", res)
+      console.log("assets before payment ", res)
     });
       
-    await submitLanding.wait();
-    console.log("________________________________________________________________");
-    await swopXLanding.connect(owner).assets(1).then(res=>{
-      console.log("assets ", res)
-    });
+ 
   
     await nft721.connect(borrower).ownerOf(1).then(res=>{
       console.log("owner of ", res);
@@ -179,13 +175,20 @@ describe("Landing", function () {
     const u20Tokenborrower = await u20.connect(borrower).approve(swopXLanding.address, borrowerAmountApprove);
     await u20Tokenborrower.wait();
 
-    const makePayment = await swopXLanding.connect(borrower).makePayment(1, term, 
-    time,borrowerfee,proofFirstMonth);
+
+    const loanTimestampLoanPayment = [1656094663, 4927]
+    const makePayment = await swopXLanding.connect(borrower).makePayment(1, 1, 
+    loanTimestampLoanPayment,borrowerfee,payFirstMonth);
     await makePayment.wait();
 
     await u20.connect(owner).balanceOf(owner.address).then(res=>{
         console.log("first payment owner balance ", res)
     })
+
+    console.log("________________________________________________________________");
+    await swopXLanding.connect(owner).assets(1).then(res=>{
+      console.log("assets after payment", res)
+    });
 
 //     await u20.connect(owner).balanceOf(borrower.address).then(res=>{
 //         console.log("first payment borrower balance ", res)
