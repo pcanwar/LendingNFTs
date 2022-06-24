@@ -326,7 +326,6 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         _assets[_counterId].payBackAfterLoan +=  loanTimestampLoanPayment[1] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, _m.lender,  loanTimestampLoanPayment[1]);
-       
         _burn(_counterId);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
@@ -343,17 +342,15 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
     */
     function defaultAsset(uint256 _counterId, 
     uint256[] calldata loanTimestampLoanPayment, uint256 fee_, bytes32[] calldata proof) external nonReentrant  {
+        
         address contractOwner  = owner();
         uint256 _time = clockTimeStamp();
         LendingAssets memory _m = _assets[_counterId];
-        uint256 term_ = _m.termId;
+        require(_m.isPaid != true, "is paid already");
+        uint256 term_ = _m.termId ;
         require(_verifyTree(_leaf(term_ , loanTimestampLoanPayment), proof, _m.gist), "Invalid proof");
         require(_m.lender == msg.sender);
         require(_timeExpired(loanTimestampLoanPayment[0]) <= _time, "Not default yet");
-        require(_m.isPaid != true, "is paid already");
-        // require(time[0] >= _time, "Default");
-        // require(int256(_m.loanTerm)  >= term_ ,"Check the Term");
-        // require(_time  < time[0],"Check the Time");
         require(fee_ >= calculatedFee(_m.loanAmount),"fee");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         _burn(_counterId);

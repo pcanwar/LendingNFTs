@@ -6,15 +6,14 @@
         "Principal":"5000",
         "Interest":"400",
         "End Balance":"0" 
-        
     },
     "First Term": {
         "timestamp":"1656011891",
         "Begining Balance":"5000",
-        "Payment":"95",
-        "Principal":"73",
-        "Interest":"22",
-        "End Balance":"4927"
+        "Payment":"429.18",
+        "Principal":"278.97",
+        "Interest":"150.21",
+        "End Balance":"4570.82"
     },
     "Second Term": {
         "timestamp":1656011891,
