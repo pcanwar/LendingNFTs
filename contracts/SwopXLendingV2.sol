@@ -20,7 +20,7 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 contract SwopXLendingAssets is EIP712 {
 
     /* 
-    SwopXLendingAssets is for lenders to sign a message  
+        SwopXLendingAssets is for lenders to sign a message  
     */
 
     constructor()  EIP712("SwopXLending","1.0"){
@@ -28,10 +28,10 @@ contract SwopXLendingAssets is EIP712 {
     }
 
     function _hashLending(uint256 nonce,address paymentContract,
-    uint256 offeredTime,uint256 loanAmount,uint256 loanCost,
-    address nftcontract,address nftOwner,
-    uint256 nftTokenId,bytes32 gist) 
-    public view returns (bytes32)
+        uint256 offeredTime,uint256 loanAmount,uint256 loanCost,
+        address nftcontract,address nftOwner,
+        uint256 nftTokenId,bytes32 gist) 
+        public view returns (bytes32)
     {
         return _hashTypedDataV4(keccak256(abi.encode(
             keccak256("Landing(uint256 nonce,address paymentContract,uint256 offeredTime,uint256 loanAmount,uint256 loanCost,address nftcontract,address nftOwner,uint256 nftTokenId,bytes32 gist)"),
@@ -85,6 +85,7 @@ contract SwopXLendingAssets is EIP712 {
 
 }
 
+
 contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
 
     using Counters for Counters.Counter;
@@ -92,6 +93,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
     Counters.Counter private _IdCounter;  
     Counters.Counter private _termId;  
     uint256 private txfee;
+    // uint256 private txPerfee;
     string private _baseMetadata;
 
     struct LendingAssets {
@@ -142,6 +144,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
 
     constructor() ERC721("SwopX", "SWING") {
         txfee = 200;
+        // txPerfee = 200;
     }
 
 
@@ -300,7 +303,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimestampLoanPayment[0]) >= _time, "Default");
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimestampLoanPayment[1],"Not enough allowance" );
-        require(calculatedFee(_m.loanAmount) <= fee_, "fees");
+        require(calculatedFee(_m.loanCost) <= fee_, "fees");
         address contractOwner  = owner();
         _assets[_counterId].termId++;
         // // _assets[_counterId].payAmountAfterLoan -= loanAmountInterest;
@@ -329,7 +332,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         require(ownerOf(_counterId) == msg.sender,"Only NFT owner");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimestampLoanPayment[0]) >= _time, "Expired");
-        require(calculatedFee(_m.loanAmount) <= fee_, "fees");
+        require(calculatedFee(_m.loanCost) <= fee_, "fees");
         address contractOwner  = owner();
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimestampLoanPayment[1],"Not enough allowance" );
         // _assets[_counterId].termId++;       
@@ -361,7 +364,7 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         require(_verifyTree(_leaf(term_ , loanTimestampLoanPayment), proof, _m.gist), "Invalid proof");
         require(_m.lender == msg.sender);
         require(_timeExpired(loanTimestampLoanPayment[0]) <= _time, "Not default yet");
-        require(fee_ >= calculatedFee(_m.loanAmount),"fee");
+        require(fee_ >= calculatedFee(_m.loanCost),"fee");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         _burn(_counterId);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, fee_);
@@ -389,6 +392,13 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         uint callItFee = _amount * _txfee;
         fee = callItFee / 2e4;
     }
+
+    // function calculatedPerFee(uint256 _amount) public view returns(uint fee) {
+    //     uint _txfee = txPerfee;
+    //     uint callItFee = _amount * _txfee;
+    //     fee = callItFee / 2e4;
+    // }
+
 
 
     /*
