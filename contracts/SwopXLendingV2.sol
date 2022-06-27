@@ -221,13 +221,24 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
     // borrowr needs to submit the lender's offer
     // _offeredTime is time to offer and takes a future timestamp
     // _loanTerm is number of months
-    
+    /*
+    * @notice: the submit function is called by only the borrowers if they 
+    * agree on the lending schedule loan 
+    * @param nonce uint256 ID is  
+    * @param _paymentAddress address 
+    * @param _lender address
+    * @param _nftcontract address
+    * @param _nftTokenId uint256
+    * @param _loanAmounLoanCost is an arry of uint256
+    * @param _offeredTime uint256
+    * @param _gist bytes32
+    * @param signature bytes
+    */
    function submit(uint256 nonce, address _paymentAddress, address _lender, 
                 address _nftcontract, uint256 _nftTokenId, uint256 [3] calldata _loanAmounLoanCost,
-                uint256 _offeredTime, bytes32 _root, bytes calldata signature) 
-        public whenNotPaused nonReentrant supportInterface(_paymentAddress) 
+                uint256 _offeredTime, bytes32 _gist, bytes calldata signature) 
+        external whenNotPaused nonReentrant supportInterface(_paymentAddress) 
        {
-        
         LendingAssets memory _m = LendingAssets({
         paymentContract: address(_paymentAddress),
         listingTime: clockTimeStamp(),
@@ -241,14 +252,13 @@ contract SwopXLendingV2 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         nftcontract:_nftcontract,
         nftOwner:msg.sender,
         nftTokenId:_nftTokenId,
-        gist: _root
+        gist: _gist
         });
         require(IERC721(_m.nftcontract).ownerOf( _m.nftTokenId) == msg.sender ,"Not Owner");
         require(identifiedSignature[_m.lender][nonce] != true, "Lender is not interested");
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(IERC20(_m.paymentContract).allowance(_m.lender, address(this)) >= _m.loanAmount, "Not enough allowance" );
         require(_loanAmounLoanCost[2] >= calculatedFee(_m.loanAmount),"fee");
-        
         require(_verify(_m.lender, _hashLending (
             nonce,_m.paymentContract,_offeredTime,
             _m.loanAmount,_m.loanCost,_m.nftcontract,
