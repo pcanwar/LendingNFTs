@@ -111,7 +111,7 @@ describe("Landing", function () {
           {
             nonce:Number(0),
             paymentContract:u20.address,
-            offeredTime: Number(1656459017),
+            offeredTime: Number(1656522264),
             loanAmount:lendingAmount,
             loanCost:cost,
             nftcontract:nft721.address,
@@ -132,7 +132,7 @@ describe("Landing", function () {
     const _lender = lender.address ;
     const _nftcontract = nft721.address;
     const _nftTokenId = Number(1)
-    const _offeredTime  = Number(1656459017)  ;
+    const _offeredTime  = Number(1656522264)  ;
 
     let Amountfee2;
     await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
@@ -179,7 +179,7 @@ const payFirstMonth = merkleTree.getHexProof(leaf[term1st]);
 // const paySecondMonth = merkleTree.getHexProof(leaf[term2nd]);
 // const pay3rdMonth = merkleTree.getHexProof(leaf[term3rd]);
 const interest = ethers.utils.parseEther('0.016666666666666667');
-const loanTimestampLoanPayment= ["1656459017", "0","16666666666666667", "2000000000000000000","10000000000000000000"];
+const loanTimestampLoanPayment= ["1656522264", "0","16666666666666667", "2000000000000000000","10000000000000000000"];
 // const loanTimestampLoanPayment = ["1656459017", "0",interest, "2000000000000000000","10000000000000000000"]
 let feefirst ;
 await swopXLanding.connect(borrower).calculatedInterestFee(interest).then(res=>{
