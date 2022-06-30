@@ -68,6 +68,7 @@ describe("Landing", function () {
       await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
         Amountfee = res;
         });
+        
       console.log(("fee:",  Amountfee ));
       const cost = ethers.utils.parseEther('5');
 
@@ -190,6 +191,7 @@ const makePayment = await swopXLanding.connect(borrower).makePayment(nftreceipt,
 loanTimestampLoanPayment,feefirst,payFirstMonth);
 await makePayment.wait();
 console.log("________________________________________________________________");
+
 // const makePayment2 = await swopXLanding.connect(borrower).makePayment(nftreceipt, term2nd, 
 //     loanTimestampLoanPayment,borrowerfee,paySecondMonth);
 //     await makePayment2.wait();
