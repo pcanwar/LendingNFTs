@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+// import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -71,7 +71,7 @@ contract SwopXLendingAssets is EIP712 {
 }
 
 
-contract SwopXLendingV3 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
+contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
 
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
@@ -197,57 +197,59 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
 
 
     // return the assets 
-    // function assets(uint256 counterId) public view returns (
-    //     address paymentAddress,
-    //     uint256 listingTime,
-    //     uint256 termId,
-    //     // address lender,
-    //     // address nftOwner,
-    //     address nftContractAddress,
-    //     uint256 nftTokenId,
-    //     uint256 loanAmount, uint256 loanCost, 
-    //     uint256 payAmountAfterLoan, uint256 payBackAfterLoan, bool isPaid) {
+    function assets(uint256 counterId) external view returns (
+        address paymentAddress,
+        uint256 listingTime,
+        uint256 termId,
+        // address lender,
+        // address nftOwner,
+        address nftContractAddress,
+        uint256 nftTokenId,
+        uint256 loanAmount, uint256 loanCost, 
+        uint256 payAmountAfterLoan, uint256 payBackAfterLoan, bool isPaid) {
 
-    //     paymentAddress = _assets[counterId].paymentContract;
-    //     listingTime = _assets[counterId].listingTime;
-    //     termId = _assets[counterId].termId;
-    //     // lender = _assets[counterId].lender;
-    //     // nftOwner = _assets[counterId].nftOwner;
-    //     nftContractAddress = _assets[counterId].nftcontract;
-    //     nftTokenId = _assets[counterId].nftTokenId;
-    //     loanAmount = _assets[counterId].loanAmount;
-    //     loanCost = _assets[counterId].loanCost;
-    //     // feesCost = calculatedFee(lendCost);
-    //     payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
-    //     payBackAfterLoan = _assets[counterId].payBackAfterLoan;
-    //     isPaid = _assets[counterId].isPaid;
-    // }
-
-    // function receipt(uint256 counterId) public view returns (
-    //     uint256 lenderToken,
-    //     uint256 borrowerToken) {
-    //         lenderToken = _receipt[counterId].lenderBalances;
-    //         borrowerToken = _receipt[counterId].borrowerBalances;
-    //     }
+        paymentAddress = _assets[counterId].paymentContract;
+        listingTime = _assets[counterId].listingTime;
+        termId = _assets[counterId].termId;
+        // lender = _assets[counterId].lender;
+        // nftOwner = _assets[counterId].nftOwner;
+        nftContractAddress = _assets[counterId].nftcontract;
+        nftTokenId = _assets[counterId].nftTokenId;
+        loanAmount = _assets[counterId].loanAmount;
+        loanCost = _assets[counterId].loanCost;
+        // feesCost = calculatedFee(lendCost);
+        payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
+        payBackAfterLoan = _assets[counterId].payBackAfterLoan;
+        isPaid = _assets[counterId].isPaid;
+    }
+   
+   /* 
+    * @notice: returns the token id of lending protocol id. 
+    */  
+    function receipt(uint256 counterId) external view returns (
+        uint256 lenderToken,
+        uint256 borrowerToken) {
+            lenderToken = _receipt[counterId].lenderBalances;
+            borrowerToken = _receipt[counterId].borrowerBalances;
+        }
       
-
-    // counter 
+    /* 
+    * @notice: a counter of the protocol 
+    */  
     function counter() private returns(uint256 counterId){
         counterId = _IdCounter.current();
         _IdCounter.increment();
     }
 
+    /* 
+    * @notice: a counter of the NFT  
+    */  
     function nftCounter() private returns(uint256 counterId){
-        counterId = _nftCounter.current();
         _nftCounter.increment();
-
+        counterId = _nftCounter.current();
     }
 
- 
 
-    // borrowr needs to submit the lender's offer
-    // _offeredTime is time to offer and takes a future timestamp
-    // _loanTerm is number of months
     /*
     * @notice: the submit function is called by only the borrowers if they 
     * agree on the lending schedule loan 
@@ -351,31 +353,45 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, ERC721Burnable, Ownable, Re
         emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), _m.termId, loanPayment, fee_, proof); 
     }
 
+    /*
+    * @notice: make prepayment is an early repayment of a loan by a borrower, verifiying 
+    * tow proofs, the perProof which is for the per timestamp and proof which is the current term
+    * event does not get the address of the lander 
+    * from a burn can identify the addresses of the lender and borrower. 
+    * @param _counterId uint256 main id of the lending 
+    * @param term_ uint256 each term to pay the pre payment 
+    * @param loanTimesPaymentInterest the arry of the term
+    * @param preLoanTimes arry of the 0 term
+    * @param fee_ of the interest
+    * @param proof of the _term 
+    * @param preProof of the 0 term's interest
+    */
     function makePrePayment(uint256 _counterId, uint256 term_, 
-    uint256[] calldata loanTimesPaymentInterest, uint256[] calldata preloanTimes,uint256 fee_, bytes32 [] calldata proof,bytes32 [] calldata preProof) external nonReentrant {
+    uint256[] calldata loanTimesPaymentInterest, uint256[] calldata preLoanTimes,uint256 fee_, bytes32 [] calldata proof,bytes32 [] calldata preProof) external nonReentrant {
         
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
 
-        require(_verifyTree(_leaf(0 , preloanTimes), preProof, _m.gist), "Invalid proof");
+        require(_verifyTree(_leaf(0 , preLoanTimes), preProof, _m.gist), "Invalid proof");
         require(_verifyTree(_leaf(term_, loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
-        require(preloanTimes[0]>= clockTimeStamp(),"Expired" );
+        require(preLoanTimes[0]>= clockTimeStamp(),"Expired" );
         require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
         // require(_m.isPaid != true, "is paid already");
         // require(_timeExpired(perloanTimestampLoanPaymentLoanInterest[0]) >= _time, "Expired");
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
-        // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimestampLoanPaymentLoanInterest[4] + loanTimestampLoanPaymentLoanInterest[3],"Not enough allowance" );
+        // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
         require(calculatedInterestFee(_m.loanCost - _m.paidInterest) <= fee_, "fees");
 
-        _assets[_counterId].payBackAfterLoan +=  (loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]) ;
-        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
+        _assets[_counterId].payBackAfterLoan +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
+        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), calculatedInterestFee(_m.loanCost - _m.paidInterest));
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
         _burn(_nft.borrowerBalances);
         _burn(_nft.lenderBalances);
+        
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit PrePayLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), fee_, proof); 
+        // emit PrePayLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), fee_, proof); 
     }
    
     function clockTimeStamp() private view returns(uint256 x){
