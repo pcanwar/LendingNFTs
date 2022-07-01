@@ -12,6 +12,7 @@ const times = require('./loan.json');
 */
 //  ["timestamp", "Principal", "Interest", "pre Interet", "Per Principal" ],
 function hashloan(counter, timestampPayment) {
+  
   return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[1],timestampPayment[2],timestampPayment[3],timestampPayment[4]]).slice(2), 'hex')
 }
 //##########################################################################################

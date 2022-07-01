@@ -137,7 +137,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 fee,bytes32 [] proof );
 
-    
+    event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
+
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
     
     event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
@@ -176,7 +177,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     // function resetMaximumTenure(uint256 _maximumTenure) public onlyOwner { 
     //     maximumTenure = _maximumTenure;
     // }
-
 
     // add ERC20 token contract address
     function addToken(address _contract, bool _mode) external onlyOwner {
@@ -298,7 +298,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 counterId = counter();
         _assets[counterId] = _m;
         _receipt[counterId].lenderBalances = nftCounter();
-
         _receipt[counterId].borrowerBalances = nftCounter();
         Receipt memory _nft = _receipt[counterId];
         _safeMint(_lender, _nft.lenderBalances ) ;
@@ -321,7 +320,18 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
   
 
-    // make payment before time expired
+    /*
+    * @notice: make payment is a way to pay a loan by a borrower, 
+    * the payment has to follow the terms 
+    * at the end of the term both nft tokens will get burned
+    * @param _counterId uint256 main id of the lending 
+    * @param term_ uint256 each term to pay the pre payment 
+    * @param loanTimesPaymentInterest the arry of the term
+    * @param preLoanTimes arry of the 0 term
+    * @param fee_ of the interest
+    * @param proof of the _term 
+    * @param preProof of the 0 term's interest
+    */
     function makePayment(uint256 _counterId, uint256 term_, 
     uint256[] calldata loanTimestampPaymentInterest, uint256 fee_, bytes32[] calldata proof) external nonReentrant {
         
@@ -350,7 +360,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _assets[_counterId].isPaid = true;
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         }
-        emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), _m.termId, loanPayment, fee_, proof); 
+        // emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), _m.termId, loanPayment, fee_, proof); 
     }
 
     /*
