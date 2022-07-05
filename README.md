@@ -43,7 +43,7 @@ Generate the root before Sig
     console.log("root", root);
 
 ```
-create signture for starting a loan, this sig comes from the lender and 
+Create signture for starting a loan, this sig comes from the lender and 
 it gets sent to the chain by the borrower.
 
 ```javascript
@@ -62,7 +62,7 @@ it gets sent to the chain by the borrower.
                 { name: 'paymentContract', type: 'address'}, 
                 // erc20 address
                 { name: 'offeredTime', type: 'uint256'}, 
-                // offeredTime is a timestamp that should be in the future
+                // offeredTime is a timestamp that should be in the future, otherwise this sig will be expired. 
                 { name: 'loanAmount', type: 'uint256'}, 
                 // Begining Balance
                 { name: 'loanCost', type: 'uint256'}, 
@@ -84,5 +84,26 @@ it gets sent to the chain by the borrower.
                 nftTokenId:Number(1),
                 gist: root
             },);
+
+```
+
+```javascript
+    /*
+    * @notice: the submit function is called by the borrowers only when there is a agreement on the lending schedule loan 
+    * @param _nonce uint256 ID comes from the backend
+    * @param _paymentAddress address is the crypto currncy address WETH, USDT, etc
+    * @param _lender address is the lender wallet address 
+    * @param _nftcontract address
+    * @param _nftTokenId uint256
+    * @param _loanAmounLoanCost uint256 is an arry of loan amount, loan interest and loan fee
+    * @param _offeredTime uint256 needs to be a future timestamp  
+    * @param _gist bytes32, the root value 
+    * @param signature bytes value
+    */
+    const submitLanding = await swopXLanding.connect(borrower).submit(
+      _nonce, _paymentContract, _lender, 
+      _nftcontract, _nftTokenId, _loanAmounLoanCostFee,
+      _offeredTime,root, signature);
+    await submitLanding.wait();
 
 ```
