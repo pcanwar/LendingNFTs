@@ -173,18 +173,17 @@ The borrower start a loan when they submit the deal
 /*
 * @notice: make payment is a way to pay a loan by a borrower, and 
 * the payment has to follow the term's array in the json file.
-* at the end of the payment term both nft receite tokens will get  burned.
-* On the backend  there is two events needs to be ran
-* @param nftreceipt or counterid uint256 is the main id of the lending and each counter contains two nft receites 
-* @param term1st uint256 each term to pay the pre payment 
-* @param loanTimestampLoanPayment the arry of the term
-* @param feeInterest uint256 is based on the interest fee
-* @param payFirstMonth 
+* at the end of the payment term both nft receipt tokens will get  burned.
+* On the backend needs to listen to two events 
+* @param nftreceipt/_counterId uint256 is the main id of the lending and each counter contains two nft receites 
+* @param term_ uint256 needs to match the the counter terms in the contract, and it gets increaded each time the borrower made a payment.
+* @param loanTimestampPaymentInterest the arry of the current term starting from 1.
+* @param feeInterest uint256 is a fee that based on the interest of current term.
+* @param proof leaf of Merkle tree   
 */
 
-
-const makePayment = await swopXLanding.connect(borrower).makePayment(nftreceipt, term1st, 
-loanTimestampLoanPayment,feeInterest,payFirstMonth);
+const makePayment = await swopXLanding.connect(borrower).makePayment(_counterId, term_, 
+loanTimestampPaymentInterest, feeInterest, proof);
 await makePayment.wait();
 
 ```
