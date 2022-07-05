@@ -18,8 +18,8 @@ Install with npm
 - the 0 term represents the per payment timestamp, after this timestamp borrower can not run the pre payment 
 - other terms represent the monthly payment, eg.
 
-** json file follows this formate 
-Term Seq: ["timestamp", "Principal", "Interest", "pre Interet", "Per Principal" ]
+** Json file follows this formate 
+Term Seq: ["Payment Date/Timestamp", "Payment Principal", "Interest", "Pre Interet", "All Pre Payment Principal" ]
 
 ```json
 {   
@@ -116,6 +116,19 @@ Lender can cancel their sig and root at any time before the borrower start the l
 
 await swopXLanding.connect(lender).cancel(nonce, _lender);
 
+```
+
+- **callecte fees**
+```javascript
+/*
+* @notice: this function only runs before the submit function and to calcalte the fees. It runs by the borrower.
+
+* @param lendingAmount uint256 is total lending amount without the interest 
+*/
+let amountfee;
+await swopXLanding.connect(borrower).calculatedFee(lendingAmount).then( res => {
+    amountfee = res;
+});
 ```
 - **submit** function on the contract
 The borrower start a loan when they submit the deal
@@ -232,9 +245,9 @@ this to renew the root
 * @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
             the offeredTime value has to be not expired with a current time.
 * @param _counterId uint256 Id of the receipt NFT
-* @param cost uint256 new cost
+* @param cost uint256 new total insterst 
 * @param currentTerm_ uint256 the cuurent term that already paid 
-* @param _offeredTime uint256  it has to be > then current timestamp
+* @param _offeredTime uint256  it has to be greater then current timestamp otherwise it will be expired offer
 * @param gist bytes32 new root
 * @param signature bytes32 a new sig of the lender 
 */
