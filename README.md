@@ -1,15 +1,32 @@
-# Basic Sample Hardhat Project
+# SwopX 
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+## Installation
 
-Try running some of the following tasks:
+Install with npm
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+```bash
+  npm install merkletreejs
+  npm install keccak256
+```
+    
+## Lending
+
+## Usage/Examples
+
+### Sign
+```javascript
+const { MerkleTree } = require('merkletreejs');
+const keccak256 = require('keccak256');
+
+/* hashing takes :
+  -counter: the loan term eg 0,1,2,3,....
+  -timestampPayment: array of the loan timestamp and the monthly payment
+*/
+//  ["timestamp", "Principal", "Interest", "pre Interet", "Per Principal" ],
+function hashloan(counter, timestampPayment) {
+
+  return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[1],timestampPayment[2],timestampPayment[3],timestampPayment[4]]).slice(2), 'hex')
+}
+
+
 ```
