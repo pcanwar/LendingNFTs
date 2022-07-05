@@ -137,3 +137,36 @@ loanTimestampLoanPayment,feeInterest,payFirstMonth);
 await makePayment.wait();
 
 ```
+
+- **makePerPayment** function on the contract
+```javascript
+
+/*
+* @notice: needs to get calculate interest fee before make a payment
+* On the backend  there is two events needs to be ran
+* @param termInterest uint256 is a the interest value from a json file 
+*/
+let feeInterest ;
+await swopXLanding.calculatedInterestFee(termInterest).then(res=>{
+    feeInterest = res;
+});
+
+/*
+    * @notice: make pre payment is an early repayment of all amount loan and interest loan by a borrower, NFT receipt can identify the addresses of the lender and borrower. 
+    * verifiying tow proofs, the per Proof which needs to be beofre the per timestamp and proof which is the current term.
+    * Both NFT receipts get burn. 
+    For backend, there is two events needs to be ran.
+  
+    * @param nftreceipt/_counterId uint256 is the main id of the lending receipt. 
+    * @param term_ uint256 each term to pay the pre payment 
+    * @param makePerPaymentloanTimestampLoanPayment uint256 is an arry of per payment loan timestamp, Loan payment. 
+    * @param preLoanTimes arry of the 0 term
+    * @param fee_ of the interest fees
+    * @param proof of the current _term 
+    * @param preProof of the 0 term's interest
+*/
+const makePerPayment = await swopXLanding.connect(borrower).makePrePayment(nftreceipt, term_,
+    makePerPaymentloanTimestampLoanPayment,preloanTimes,feePerinterest,firstproof,preProof);
+await makePerPayment.wait();
+
+```
