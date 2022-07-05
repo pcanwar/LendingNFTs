@@ -11,9 +11,9 @@ Install with npm
     
 ## Lending
 
-## Usage/Examples
+## 🛠 Usage/Examples
 
-### create the root 
+### create the root and Sign
 ```javascript
 const { MerkleTree } = require('merkletreejs');
 const keccak256 = require('keccak256');
@@ -29,12 +29,9 @@ function hashloan(counter, timestampPayment) {
   return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[1],timestampPayment[2],timestampPayment[3],timestampPayment[4]]).slice(2), 'hex')
 }
 
-
-
-
 ```
 
-Generate the root before Sig
+-  Generate the root before Sig
 
 ```javascript
     const leaf = Object.entries(times).map(times => hashloan(...times));
@@ -43,7 +40,7 @@ Generate the root before Sig
     console.log("root", root);
 
 ```
-Create signture for starting a loan, this sig comes from the lender and 
+-  Create signture for starting a loan, this sig comes from the lender and 
 it gets sent to the chain by the borrower.
 
 ```javascript
@@ -86,6 +83,8 @@ it gets sent to the chain by the borrower.
             },);
 
 ```
+
+- **submit** function on the contract
 
 ```javascript
     /*
