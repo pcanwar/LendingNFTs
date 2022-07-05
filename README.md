@@ -129,6 +129,19 @@ let amountfee;
 await swopXLanding.connect(borrower).calculatedFee(lendingAmount).then( res => {
     amountfee = res;
 });
+
+
+/*
+* @notice: this function runs before 
+    - make payment, make pre payment, and default functions
+to get calculate interest fee before make a payment
+* On the backend  there is two events needs to be ran
+* @param termInterest uint256 is a the interest value from a json file 
+*/
+let feeInterest ;
+await swopXLanding.calculatedInterestFee(termInterest).then(res=>{
+    feeInterest = res;
+});
 ```
 - **submit** function on the contract
 The borrower start a loan when they submit the deal
@@ -156,15 +169,6 @@ The borrower start a loan when they submit the deal
 
 - **makePayment** function on the contract
 ```javascript
-/*
-* @notice: needs to get calculate interest fee before make a payment
-* On the backend  there is two events needs to be ran
-* @param termInterest uint256 is a the interest value from a json file 
-*/
-let feeInterest ;
-await swopXLanding.calculatedInterestFee(termInterest).then(res=>{
-    feeInterest = res;
-});
 
 /*
 * @notice: make payment is a way to pay a loan by a borrower, and 
