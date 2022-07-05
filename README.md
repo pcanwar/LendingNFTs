@@ -43,3 +43,46 @@ Generate the root before Sig
     console.log("root", root);
 
 ```
+create signture for starting a loan, this sig comes from the lender and 
+it gets sent to the chain by the borrower.
+
+```javascript
+    const signature = await lender._signTypedData(
+    // Domain
+        {
+            name: 'SwopXLending',
+            version: '1.0',
+            chainId: chainid,
+            verifyingContract: swopXLanding.address
+        },
+        {
+            Landing: [
+                {name: 'nonce', type: 'uint256'}, 
+                // nonce from the backend
+                { name: 'paymentContract', type: 'address'}, 
+                // erc20 address
+                { name: 'offeredTime', type: 'uint256'}, 
+                // offeredTime is a timestamp that should be in the future
+                { name: 'loanAmount', type: 'uint256'}, 
+                // Begining Balance
+                { name: 'loanCost', type: 'uint256'}, 
+                // Total Interest
+                { name: 'nftcontract', type: 'address'},
+                { name: 'nftOwner', type: 'address'},
+                { name: 'nftTokenId', type: 'uint256'},
+                { name: 'gist', type: 'bytes32'}, 
+                // root
+            ], },
+            {
+                nonce:Number(0),
+                paymentContract:u20.address,
+                offeredTime: Number(1656459017),
+                loanAmount:lendingAmount,
+                loanCost:cost,
+                nftcontract:nft721.address,
+                nftOwner:borrower.address,
+                nftTokenId:Number(1),
+                gist: root
+            },);
+
+```
