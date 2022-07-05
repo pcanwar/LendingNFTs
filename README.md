@@ -105,7 +105,8 @@ it gets sent to the chain by the borrower.
 ```
 
 - **cancel** function on the contract
-Lender can cancel their sig and root at any time.
+
+Lender can cancel their sig and root at any time before the borrower start the loan. Once the loan starts, the lender can not cancel the deal.
 ```javascript
 /*
 * @notice: only lender can cancel their offer usin their nonces that they use to sign the loan deal
