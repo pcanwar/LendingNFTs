@@ -152,10 +152,10 @@ The borrower start a loan when they submit the deal
     * @param _nonce uint256 ID comes from the backend and it can be used  once   .
     * @param _paymentAddress address is the crypto currncy address WETH, USDT, etc
     * @param _lender address is the lender wallet address 
-    * @param _nftcontract address
-    * @param _nftTokenId uint256
-    * @param _loanAmounLoanCost uint256 is an arry of loan amount, loan interest and loan fee
-    * @param _offeredTime uint256 needs to be a future timestamp  
+    * @param _nftcontract address is smart contract address 
+    * @param _nftTokenId uint256 is nft id
+    * @param _loanAmounLoanCost uint256 is an arry of total loan amount, total loan interest and fee of the total loan amount.
+    * @param _offeredTime uint256 needs to be a future timestamp   
     * @param _gist bytes32, the root value 
     * @param signature bytes value
     */
