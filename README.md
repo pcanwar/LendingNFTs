@@ -29,12 +29,17 @@ function hashloan(counter, timestampPayment) {
   return Buffer.from(ethers.utils.solidityKeccak256(['uint256','uint256','uint256','uint256','uint256','uint256'], [counter, timestampPayment[0],timestampPayment[1],timestampPayment[2],timestampPayment[3],timestampPayment[4]]).slice(2), 'hex')
 }
 
-    //generate the root before Sig
 
+
+
+```
+
+Generate the root before Sig
+
+```javascript
     const leaf = Object.entries(times).map(times => hashloan(...times));
     const merkleTree = new MerkleTree(leaf, keccak256,{sortPairs: true})
     const root = merkleTree.getHexRoot()
     console.log("root", root);
-
 
 ```
