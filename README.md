@@ -187,7 +187,6 @@ loanTimestampPaymentInterest, feeInterest, proof);
 await makePayment.wait();
 
 ```
-
 - **makePerPayment** function on the contract
 ```javascript
 
