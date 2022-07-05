@@ -228,5 +228,16 @@ await defaultAsset.wait();
 - **extendTime** function on the contract
 this to renew the root 
 ```javascript
+/*
+* @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
+            the offeredTime value has to be not expired with a current time.
+* @param _counterId uint256 Id of the receipt NFT
+* @param cost uint256 new cost
+* @param currentTerm_ uint256 the cuurent term that already paid 
+* @param _offeredTime uint256  it has to be > then current timestamp
+* @param gist bytes32 new root
+* @param signature bytes32 a new sig of the lender 
+*/
+const extendTheTime = await swopXLanding.connect(borrower).extendTheTime( _counterId, cost, currentTerm_, _offeredTime, gist , signature) 
 
 ```
