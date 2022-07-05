@@ -17,6 +17,8 @@ Install with npm
 **Amortization schedule example**
 - the 0 term represents the per payment timestamp, after this timestamp borrower can not run the pre payment 
 - other terms represent the monthly payment, eg.
+
+** json file follows this formate 
 Term Seq: ["timestamp", "Principal", "Interest", "pre Interet", "Per Principal" ]
 
 ```json
