@@ -106,3 +106,22 @@ it gets sent to the chain by the borrower.
     await submitLanding.wait();
 
 ```
+
+- **makePayment** function on the contract
+```javascript
+    /*
+    * @notice: make payment is a way to pay a loan by a borrower, and 
+    * the payment has to follow the term's array in the json file.
+    * at the end of the payment term both nft receite tokens will get  burned.
+    * On the backend  there is two events needs to be ran
+    * @param nftreceipt or counterid uint256 is the main id of the lending and each counter contains two nft receites 
+    * @param term1st uint256 each term to pay the pre payment 
+    * @param loanTimestampLoanPayment the arry of the term
+    * @param fee uint256 is based on the interest fee
+    * @param payFirstMonth 
+    */
+const makePayment = await swopXLanding.connect(borrower).makePayment(nftreceipt, term1st, 
+loanTimestampLoanPayment,fee,payFirstMonth);
+await makePayment.wait();
+
+```
