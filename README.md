@@ -13,7 +13,7 @@ Install with npm
 
 ## Usage/Examples
 
-### Sign
+### create the root 
 ```javascript
 const { MerkleTree } = require('merkletreejs');
 const keccak256 = require('keccak256');
