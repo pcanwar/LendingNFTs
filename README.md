@@ -14,7 +14,7 @@ Install with npm
 ## 🛠 Usage/Examples
 
 
-**Amortization schedule example**
+### **Amortization schedule example**
 - the 0 term represents the per payment timestamp, after this timestamp borrower can not run the pre payment 
 - other terms represent the monthly payment, eg.
 
