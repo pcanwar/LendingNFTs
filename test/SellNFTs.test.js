@@ -56,7 +56,15 @@ describe("Landing", function () {
       
       const swopXLandingERC20 = await swopXLanding.connect(owner).addToken(u20.address, true);
       await swopXLandingERC20.wait();
+            // get the fees from the loan amount
+      let Amountfee;
+      const lendingAmount = ethers.utils.parseEther('10');
       
+      await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
+        Amountfee = res;
+        });
+      console.log(("fee:",  Amountfee ));
+      const cost = ethers.utils.parseEther('2');
     //approve ##########################################################################################
   
       // borrower needs to approve their nft before sending the submit function 
@@ -64,18 +72,6 @@ describe("Landing", function () {
       const approveToken = await nft721.connect(borrower).approve(swopXLanding.address, 1  );
       await approveToken.wait();
       
-
-      // get the fees from the loan amount
-      let Amountfee;
-      const lendingAmount = ethers.utils.parseEther('10');
-
-      await swopXLanding.connect(lender).calculatedFee(lendingAmount).then(res=>{
-        Amountfee = res;
-        });
-        
-      console.log(("fee:",  Amountfee ));
-      const cost = ethers.utils.parseEther('2');
-
       // lander needs to approve USDT token that is equal to lendingAmount + Amountfee
       const u20Token = await u20.connect(lender).approve(swopXLanding.address, Amountfee+ lendingAmount);
       await u20Token.wait();
@@ -208,7 +204,7 @@ const perInterest = ethers.utils.parseEther('2000000000000000000');
 await swopXLanding.connect(borrower).calculatedInterestFee(perInterest).then(res=>{
   feePerinterest = res;
 });
-    const preloanTimes = ["1656719350", "0","16666666666666667", "2000000000000000000","10000000000000000000"];
+    const preloanTimes = ["1657142519", "0","16666666666666667", "2000000000000000000","10000000000000000000"];
     const makePerPaymentloanTimestampLoanPayment = ["1656719350", "0","16666666666666667", "2000000000000000000","10000000000000000000"];
     // function makePrePayment(uint256 _counterId, uint256 term_, 
     //   uint256[] calldata loanTimesPaymentInterest, uint256[] calldata preLoanTimes,uint256 fee_, bytes32 [] calldata proof,bytes32 [] calldata preProof) external nonReentrant {

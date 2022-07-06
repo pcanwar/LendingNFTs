@@ -95,7 +95,7 @@ it gets sent to the chain by the borrower.
                 paymentContract:u20.address,
                 offeredTime: Number(1656459017),
                 loanAmount:lendingAmount,
-                loanCost:cost,
+                loanCost:interest,
                 nftcontract:nft721.address,
                 nftOwner:borrower.address,
                 nftTokenId:Number(1),
@@ -202,10 +202,12 @@ await swopXLanding.calculatedInterestFee(termInterest).then(res=>{
 
 /*
     * @notice: make pre payment is an early repayment of all amount loan and interest loan by a borrower, NFT receipt can identify the addresses of the lender and borrower. 
+    
     * verifiying tow proofs, the per Proof which needs to be beofre the per timestamp and proof which is the current term.
-    * Both NFT receipts get burn. 
-    For backend, there is two events needs to be ran.
-  
+    
+    * Both NFT receipts get burn:
+    For backend, there is two events needs to be ran.. 
+    
     * @param nftreceipt/_counterId uint256 is the main id of the lending receipt. 
     * @param _counterId/nftreceipt uint256 is the main id of the lending 
     * @param term_ uint256 each term to pay the pre payment 
@@ -247,12 +249,12 @@ this to renew the root
 * @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
             the offeredTime value has to be not expired with a current time.
 * @param _counterId uint256 Id of the receipt NFT
-* @param cost uint256 new total insterst 
+* @param interest uint256 new total insterst 
 * @param currentTerm_ uint256 the cuurent term that already paid 
 * @param _offeredTime uint256  it has to be greater then current timestamp otherwise it will be expired offer
 * @param gist bytes32 new root
 * @param signature bytes32 a new sig of the lender 
 */
-const extendTheTime = await swopXLanding.connect(borrower).extendTheTime( _counterId, cost, currentTerm_, _offeredTime, gist , signature) 
+const extendTheTime = await swopXLanding.connect(borrower).extendTheTime( _counterId, interest, currentTerm_, _offeredTime, gist , signature) 
 
 ```

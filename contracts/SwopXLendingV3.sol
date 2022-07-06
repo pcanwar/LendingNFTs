@@ -5,7 +5,6 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-// import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -48,16 +47,16 @@ contract SwopXLendingAssets is EIP712 {
     }
 
     function _hashextend(address nftcontract,
-    uint256 nftTokenId, uint256 offerTime, uint256 cost, bytes32 gist) 
+    uint256 nftTokenId, uint256 offerTime, uint256 interest, bytes32 gist) 
     internal view returns (bytes32)
  
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Extending(address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 cost,bytes32 gist)"),
+            keccak256("Extending(address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 interest,bytes32 gist)"),
             nftcontract,
             nftTokenId,
             offerTime,
-            cost,
+            interest,
             gist
         )));
     }
@@ -469,13 +468,13 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
                 the offeredTime value has to be not expired with a current time.
     * @param _counterId uint256 Id of the receipt NFT
-    * @param cost uint256 new cost
+    * @param interest uint256 new interest
     * @param currentTerm_ uint256 the cuurent term that already paid 
     * @param _offeredTime uint256  it has to be > then current timestamp
     * @param gist bytes32 new root
     * @param signature bytes32 a new sig of the lender 
     */
-   function extendTheTime(uint256 _counterId, uint256 cost, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,bytes calldata signature) 
+   function extendTheTime(uint256 _counterId, uint256 interest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,bytes calldata signature) 
    nonReentrant external {
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
@@ -484,10 +483,10 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(currentTerm_ == _m.termId,"term does not matched");
         require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
         require(_verify(ownerOf(_nft.lenderBalances), _hashextend(_m.nftcontract,_m.nftTokenId,
-              _offeredTime, cost, gist), signature), "lender signature");
+              _offeredTime, interest, gist), signature), "lender signature");
         _assets[_counterId].gist = gist;
         // _assets[_counterId].loanTerm = loanTerm;
-        _assets[_counterId].payAmountAfterLoan += cost;
+        _assets[_counterId].payAmountAfterLoan += interest;
      
         emit ExtendTimeLog(
             _counterId, 
