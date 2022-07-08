@@ -382,7 +382,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
-
+        require(term_ == _m.termId, "term does not matched");
         require(_verifyTree(_leaf(0 , preLoanTimes), preProof, _m.gist), "Invalid proof");
         require(_verifyTree(_leaf(term_, loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
         require(preLoanTimes[0]>= clockTimeStamp(),"Expired" );
@@ -394,7 +394,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // _assets[_counterId].termId++;
         require(calculatedInterestFee(_m.loanCost - _m.paidInterest) <= fee_, "fees");
         _assets[_counterId].payBackAfterLoan +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
-        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), calculatedInterestFee(_m.loanCost - _m.paidInterest));
+        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
         _burn(_nft.borrowerBalances);
         _burn(_nft.lenderBalances);

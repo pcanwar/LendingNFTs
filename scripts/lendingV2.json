@@ -161,19 +161,6 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "burn",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
 				"name": "nonce",
 				"type": "uint256"
 			},
@@ -287,7 +274,7 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "cost",
+				"name": "interest",
 				"type": "uint256"
 			},
 			{
@@ -385,7 +372,7 @@
 			},
 			{
 				"internalType": "uint256[]",
-				"name": "loanTimestampLoanPayment",
+				"name": "loanTimestampPaymentInterest",
 				"type": "uint256[]"
 			},
 			{
@@ -412,8 +399,18 @@
 				"type": "uint256"
 			},
 			{
+				"internalType": "uint256",
+				"name": "term_",
+				"type": "uint256"
+			},
+			{
 				"internalType": "uint256[]",
-				"name": "loanTimestampLoanPayment",
+				"name": "loanTimesPaymentInterest",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "preLoanTimes",
 				"type": "uint256[]"
 			},
 			{
@@ -425,9 +422,14 @@
 				"internalType": "bytes32[]",
 				"name": "proof",
 				"type": "bytes32[]"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "preProof",
+				"type": "bytes32[]"
 			}
 		],
-		"name": "makePerPayment",
+		"name": "makePrePayment",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -530,6 +532,104 @@
 		"inputs": [
 			{
 				"indexed": true,
+				"internalType": "uint256",
+				"name": "counterId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "nftcontract",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paidAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "currentTerm",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "fee",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "PayLog",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "counterId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "nftcontract",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "borrower",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "lender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "fee",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "PrePayLog",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
 				"internalType": "address",
 				"name": "nftcontract",
 				"type": "address"
@@ -562,6 +662,11 @@
 			{
 				"internalType": "uint256",
 				"name": "_fee",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_txInterestfee",
 				"type": "uint256"
 			}
 		],
@@ -612,7 +717,7 @@
 			},
 			{
 				"internalType": "bytes",
-				"name": "_data",
+				"name": "data",
 				"type": "bytes"
 			}
 		],
@@ -912,14 +1017,14 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "lender",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "lenderToken",
+				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "nftOwner",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "borrowerToken",
+				"type": "uint256"
 			},
 			{
 				"internalType": "address",
@@ -1001,6 +1106,25 @@
 			}
 		],
 		"name": "calculatedFee",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "fee",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "calculatedInterestFee",
 		"outputs": [
 			{
 				"internalType": "uint256",
