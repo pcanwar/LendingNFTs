@@ -1,0 +1,115 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<path id="text-path-a" d="M 40 12 H 452.978 A 28 28 0 0 1 485.912 37.571 V 460.638 A 28 28 0 0 1 464.379 483.438 H 40 A 28 28 0 0 1 12 460 V 40 A 28 28 0 0 1 40 12 Z" />
+
+<!-- background -->
+<g clip-path="url(#clip0_1118_925)">
+<path d="M572 -168H-120V532H572V-168Z" fill="black"/>
+<g filter="url(#filter0_f_1118_925)">
+<path d="M429.691 414.633C165.246 423.859 -94.6406 323.85 -94.6406 111.651C-94.6406 -95.9344 116.551 -76.0063 175.823 43.9325C235.096 163.87 40.5005 88.5854 148.467 239.339C256.434 390.092 276.131 111.65 444.829 133.24C613.527 154.829 694.137 405.408 429.691 414.633Z" fill="url(#paint0_radial_1118_925)"/>
+</g>
+<path d="M290.812 313.414V216.298C290.812 205.39 299.655 196.548 310.562 196.548H410.832C415.27 196.548 419.579 198.042 423.063 200.791L444.983 218.08C449.732 221.825 452.503 227.539 452.503 233.587V330.703C452.503 341.611 443.66 350.453 432.753 350.453H332.483C328.045 350.453 323.736 348.958 320.252 346.21L298.332 328.921C293.583 325.176 290.812 319.461 290.812 313.414Z" stroke="white" stroke-width="0.5"/>
+<path d="M290.562 313.414V216.298C290.562 205.252 299.517 196.298 310.562 196.298H410.832C415.326 196.298 419.689 197.811 423.218 200.594L445.138 217.883C449.947 221.676 452.753 227.463 452.753 233.587V330.703C452.753 341.749 443.798 350.703 432.753 350.703H332.483C327.989 350.703 323.626 349.189 320.097 346.406L298.177 329.117C293.368 325.325 290.562 319.538 290.562 313.414Z" stroke="black" stroke-opacity="0.33" stroke-width="20" stroke-linejoin="round"/>
+<circle cx="451.149" cy="225.559" r="1.94628" fill="white"/>
+<circle cx="446.946" cy="343.946" r="1.94628" fill="white"/>
+<circle cx="326.251" cy="350.054" r="1.94628" fill="white"/>
+<circle cx="297.946" cy="200.946" r="1.94628" fill="white"/>
+<circle cx="291.946" cy="321.666" r="1.94628" fill="white"/>
+<circle cx="417.063" cy="196.946" r="1.94628" fill="white"/>
+<rect x="22.25" y="22.25" width="455.5" height="452.5" rx="23.75" stroke="white" stroke-opacity="0.33" stroke-width="0.5"/>
+</g>
+<defs>
+<filter id="filter0_f_1118_925" x="-294.641" y="-245.69" width="1095.24" height="860.907" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="100" result="effect1_foregroundBlur_1118_925"/>
+</filter>
+<radialGradient id="paint0_radial_1118_925" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(425.582 116.833) rotate(152.241) scale(454.676 384.817)">
+<stop stop-color="#FFF73C"/>
+<stop offset="1" stop-color="#2A72FE"/>
+</radialGradient>
+<clipPath id="clip0_1118_925">
+<rect width="500" height="500" rx="44" fill="white"/>
+</clipPath>
+</defs>
+
+<!-- end background -->
+
+
+<!-- text moving -->
+
+<text text-rendering="optimizeSpeed">
+
+<textPath startOffset="-100%" fill="white" font-family="'Courier New', monospace" font-size="10px" xlink:href="#text-path-a">0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d • BoredApeYachtClub <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /></textPath> 
+
+<textPath startOffset="0%" fill="white" font-family="'Courier New', monospace" font-size="10px" xlink:href="#text-path-a">0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d • BoredApeYachtClub <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /> </textPath>
+
+<textPath startOffset="50%" fill="white" font-family="'Courier New', monospace" font-size="10px" xlink:href="#text-path-a">0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d • BoredApeYachtClub <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /></textPath>
+
+<textPath startOffset="-50%" fill="white" font-family="'Courier New', monospace" font-size="10px" xlink:href="#text-path-a">0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d • BoredApeYachtClub <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /></textPath>
+
+
+</text>
+
+<!-- above text title -->
+<text x="45" y="78" font-family="'Courier New', monospace" font-size="32" font-weight="light" fill="black"> <tspan fill="rgba(255,255,255,0.66)">Total Cost:</tspan></text> 
+<text x="270" y="78" font-family="'Courier New', monospace" font-size="32" font-weight="light" fill="white">14 ETH</text>
+
+<text x="45" y="120" font-family="'Courier New', monospace" font-weight="light" font-size="32" fill="white"> <tspan fill="rgba(255,255,255,0.66)">APY: </tspan></text> 
+<text x="136" y="120" font-family="'Courier New', monospace" font-weight="light" font-size="32" fill="white">30.2%</text>
+
+<!-- image uri -->
+ <image  x="332" y="233" href="https://swopx-price-suggestion-images.s3.amazonaws.com/c9cd239f5f7d90556e15792fd0bba1a2403a31a7564fde833ba0f83a54c78e3a.png" 
+ height="80" width="80" /> 
+
+
+<!--  width: value will be how many characters * 11  -->
+<!-- shoadow  on Name -->
+<rect  x="38" y="150" width="250" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+<!-- end of the shoadow  on Name -->
+
+<text x="45" y="167" font-family="'Courier New', monospace" fill="white"> <tspan fill="rgba(255,255,255,0.6)">Name: </tspan></text> 
+<text x="100" y="167" font-family="'Courier New', monospace"  fill="white">BoredApeYachtClub</text>
+
+<rect  x="38" y="195" width="132" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+<text x="45" y="213" font-family="'Courier New', monospace" fill="white"><tspan fill="rgba(255,255,255,0.6)">Token ID:</tspan> </text> 
+<text x="145" y="213" font-family="'Courier New', monospace" fill="white"> 12 </text>
+
+<rect  x="38" y="225" width="198" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+<text x="45" y="241" font-family="'Courier New', monospace" fill="white"> <tspan fill="rgba(255,255,255,0.6)"> Loan Type:</tspan>
+ </text> 
+ 
+<text x="155" y="241" font-family="'Courier New', monospace" fill="white"> Monthly</text>
+
+<rect  x="38" y="253" width="165" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+<text x="45" y="269" font-family="'Courier New', monospace" fill="white"> 
+<tspan fill="rgba(255,255,255,0.6)"> Loan Length:</tspan>
+</text> 
+<text x="172" y="269" font-family="'Courier New', monospace" fill="white"> 12 </text>
+
+<rect  x="38" y="281" width="220" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+<text x="45" y="297" size="12" font-family="'Courier New', monospace" fill="white">
+<tspan fill="rgba(255,255,255,0.6)"> Start Date:</tspan></text> 
+<text x="158" y="297" font-family="'Courier New', monospace" fill="white"> 12/01/22 </text>
+
+<rect  x="38" y="309" width="165" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+<text x="45" y="325" font-family="'Courier New', monospace" fill="white"> 
+<tspan fill="rgba(255,255,255,0.6)"> Payment:</tspan>
+</text> 
+<text x="128" y="325" font-family="'Courier New', monospace" fill="white"> 13 ETH  </text>
+
+<rect  x="38" y="337" width="220" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+<text x="45" y="353" font-family="'Courier New', monospace" fill="white"> <tspan fill="rgba(255,255,255,0.6)"> Total Paid:</tspan></text> 
+<text x="162" y="353" font-family="'Courier New', monospace" fill="white"> 1.30 ETH  </text>
+
+<!-- we need it if it applies -->
+<rect  x="396" y="390" width="63" height="63" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+<rect  x="322" y="390" width="63" height="63" rx="8px" ry="8px" fill="rgba(0,0,0,0.33)" />
+
+
+</svg>
