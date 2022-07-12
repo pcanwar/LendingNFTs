@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.10;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -112,7 +112,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     mapping(IERC20=> bool) private erc20Addrs;
     mapping(address => mapping(uint256 => bool)) private identifiedSignature;
 
-    // Event of a new lending/borowing submition 
+    // Event for submiting and starting a new lending/borowing  
     event AssetsLog(
         uint256 counter,
         address indexed owner,
@@ -188,12 +188,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return erc20Addrs[IERC20(_contract)];
     }
 
-
     function _timeExpired(uint256 time) private pure returns(uint256) {
         return 7 days * time;
     }
-
-
 
     // return the assets 
     function assets(uint256 counterId) external view returns (
@@ -321,20 +318,17 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
     /*
     * @notice: make payment is a way to pay a loan by a borrower, 
-    * the payment has to follow the term's array 
-    * at the end of the term both nft tokens will get burned
-    * there is two events needs to be run on the backend pay 
-    * @param _counterId uint256 main id of the lending 
-    * @param term_ uint256 each term to pay the pre payment 
-    * @param loanTimesPaymentInterest the arry of the term
-    * @param preLoanTimes arry of the 0 term
-    * @param fee_ of the interest
+    * the payment has to follow the term's array off chains and
+    * at the end of the term both nft tokens will get burned.
+    * There is two events needs to be run based on ERC721 
+    * @param _counterId uint256 main id of the lending process 
+    * @param term_ uint256 the term gets increased everytime the borrower pays its term
+    * @param loanTimestampPaymentInterest the arry of the timestamp, payment, and interest
+    * @param fee_ is taking from the current interest
     * @param proof of the _term 
-    * @param preProof of the 0 term's interest
     */
     function makePayment(uint256 _counterId, uint256 term_, 
     uint256[] calldata loanTimestampPaymentInterest, uint256 fee_, bytes32[] calldata proof) external nonReentrant {
-        
         // _termOf[_counterId] = _termId.current();
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
@@ -346,7 +340,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 loanPayment = loanTimestampPaymentInterest[1] + loanTimestampPaymentInterest[2];
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanPayment,"Not enough allowance" );
         require(calculatedInterestFee(loanTimestampPaymentInterest[2]) <= fee_, "fees");
-        // interest[_counterId] += loanTimestampLoanPaymentLoanInterest[2];
         _assets[_counterId].paidInterest += loanTimestampPaymentInterest[2];
         _assets[_counterId].termId++;        
         _assets[_counterId].payBackAfterLoan +=  loanPayment ;
@@ -360,8 +353,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _assets[_counterId].isPaid = true;
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         }
-        // emit PayBackLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), _m.termId, loanPayment, fee_, proof); 
-        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_,proof );
+        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof );
     }
 
     /*
@@ -388,6 +380,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(preLoanTimes[0]>= clockTimeStamp(),"Expired" );
         require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
         require(_m.isPaid != true, "is paid already");
+
         // require(_timeExpired(perloanTimestampLoanPaymentLoanInterest[0]) >= _time, "Expired");
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
         // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
@@ -400,7 +393,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _burn(_nft.lenderBalances);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        // emit PrePayLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, ownerOf(_nft.lenderBalances), fee_, proof); 
         emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId, calculatedInterestFee(_m.loanCost - _m.paidInterest),proof );
 
     }
@@ -409,12 +401,14 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         x = block.timestamp;
     }
 
-    // default NFT :
-    /*
-    submit nft id to check  
+    /* @notice defaultAsset function the only way for claiming the NFT if the borrowers do not make their payment's term
+        * @param _counterId uint256 main id of the lending 
+        * @param loanTimesPaymentInterest uint256 is an arry of the term schedule time, payment, and interest
+        * @param fee_ uint256
+        * @param proof of the _term array
     */
     function defaultAsset(uint256 _counterId, 
-    uint256[] calldata loanTimestampLoanPayment, uint256 fee_, bytes32[] calldata proof) external nonReentrant  {
+    uint256[] calldata loanTimesPaymentInterest, uint256 fee_, bytes32[] calldata proof) external nonReentrant  {
         
         address contractOwner  = owner();
         uint256 _time = clockTimeStamp();
@@ -422,9 +416,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         Receipt memory _nft = _receipt[_counterId];
         require(_m.isPaid != true, "is paid already");
         uint256 term_ = _m.termId ;
-        require(_verifyTree(_leaf(term_ , loanTimestampLoanPayment), proof, _m.gist), "Invalid proof");
+        require(_verifyTree(_leaf(term_ , loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
         require(ownerOf(_nft.lenderBalances)== msg.sender,"not a lender");
-        require(_timeExpired(loanTimestampLoanPayment[0]) <= _time, "Not default yet");
+        require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         uint256 remaining = _m.loanCost - _m.paidInterest;
         require(fee_ >= calculatedInterestFee(remaining),"fee");
@@ -435,19 +429,47 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         emit DefaultLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, fee_);
     }
 
-    // only lender can cancel their offer usin their nonces
-    function cancel(uint256 nonce, address _lender) external   {
+
+    /* @dev isDefaulted function a way for checking if the nft gets defaulted
+        * @param _counterId uint256 main id of the lending 
+        * @param loanTimesPaymentInterest the arry of the term
+        * @param proof of the _term array
+    */
+    function isDefaulted(uint256 _counterId,  uint256[] calldata loanTimesPaymentInterest, bytes32[] calldata proof) view external returns(bool) {
+        LendingAssets memory _m = _assets[_counterId];
+        uint256 term_ = _m.termId ;
+        require(_verifyTree(_leaf(term_ , loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
+        uint256 _time = clockTimeStamp();
+        if (_timeExpired(loanTimesPaymentInterest[0]) <= _time ){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    /*
+    * @notice: cancel the signature and the offer by the lender
+    * @param nonce uint256 is used once on the backend and once for canceling an offer
+    * @param _lender address
+    */
+    function cancel(uint256 nonce, address _lender) external  {
         require(_lender == msg.sender, "Not a Lender");
         require(identifiedSignature[_lender][nonce] != true, "Not interested");
         identifiedSignature[_lender][nonce] = true;
         emit CancelLog(_lender,nonce, true);
     }
+    
 
+    /*
+    * @notice: check if the nonce is used or canceled
+    * @param nonce uint256 is used once on the backend and once for canceling an offer
+    * @param _lender address
+    */
     function isNonceUsed(uint256 nonce, address _lender) external view returns(bool _isNonceUsed){
         _isNonceUsed = identifiedSignature[_lender][nonce];
     }
     
-   /* @dev calculatedFee function is called in any payment
+   /* @dev calculatedFee function is only called in submit a loan
     * @param _amount uint256 of calculating the fees
     */
     function calculatedFee(uint256 _amount) public view returns(uint fee) {
@@ -456,6 +478,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         fee = callItFee / 2e4;
     }
 
+    /* @dev calculatedInterestFee function is called making payment, pre payment, and default functions 
+    * @param _amount uint256 of calculating the fees
+    */
     function calculatedInterestFee(uint256 _amount) public view returns(uint fee) {
         uint _txfee = txInterestfee;
         uint callItFee = _amount * _txfee;
@@ -465,7 +490,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
 
     /*
-    * @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
+    * @notice: borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
                 the offeredTime value has to be not expired with a current time.
     * @param _counterId uint256 Id of the receipt NFT
     * @param interest uint256 new interest
@@ -511,11 +536,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
 
 
-    // // this is only if the nft gets locked or pused contract 
-    // function NFTw(address _nftcontract, address _to, uint256 tokenId) external onlyOwner {
-    //     IERC721(_nftcontract).safeTransferFrom(address(this), _to, tokenId);
-    //     emit PusedTransferLog(_nftcontract, _to, tokenId);
-    // }
     /*
     * @notice: burn function is called when all payment made or the nft gets defulted
     * @param tokenId uint256 ID of the token being burned
@@ -583,15 +603,13 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return super.supportsInterface(interfaceId);
     }
     
-    // The following functions are overrides required by Solidity.
+    
     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
         internal
         override(ERC721)
     {
         super._beforeTokenTransfer(from, to, tokenId);
     }
-
-
 
 
 }
