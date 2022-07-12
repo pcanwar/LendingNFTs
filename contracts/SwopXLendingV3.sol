@@ -27,18 +27,18 @@ contract SwopXLendingAssets is EIP712 {
     }
 
     function _hashLending(uint256 nonce,address paymentContract,
-        uint256 offeredTime,uint256 loanAmount,uint256 loanCost,
+        uint256 offeredTime,uint256 loanAmount,uint256 loanInterest,
         address nftcontract,address nftOwner,
         uint256 nftTokenId,bytes32 gist) 
         public view returns (bytes32)
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Landing(uint256 nonce,address paymentContract,uint256 offeredTime,uint256 loanAmount,uint256 loanCost,address nftcontract,address nftOwner,uint256 nftTokenId,bytes32 gist)"),
+            keccak256("Landing(uint256 nonce,address paymentContract,uint256 offeredTime,uint256 loanAmount,uint256 loanInterest,address nftcontract,address nftOwner,uint256 nftTokenId,bytes32 gist)"),
             nonce,
             paymentContract,
             offeredTime,
             loanAmount,
-            loanCost,
+            loanInterest,
             nftcontract,
             nftOwner,
             nftTokenId,            
@@ -89,7 +89,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         address paymentContract;
         uint256 listingTime;
         uint256 loanAmount;
-        uint256 loanCost;
+        uint256 loanInterest;
         uint256 paidInterest;
         uint256 payAmountAfterLoan;
         uint256 payBackAfterLoan;
@@ -121,7 +121,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         address indexed lender,
         address currentAddress,
         uint256 loanAmount,
-        uint256 loanCost,
+        uint256 loanInterest,
         uint256 payAmountAfterLoan,
         bytes32 gist
     );
@@ -201,7 +201,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // address nftOwner,
         address nftContractAddress,
         uint256 nftTokenId,
-        uint256 loanAmount, uint256 loanCost, 
+        uint256 loanAmount, uint256 loanInterest, 
         uint256 payAmountAfterLoan, uint256 payBackAfterLoan, bool isPaid) {
 
         paymentAddress = _assets[counterId].paymentContract;
@@ -212,7 +212,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         nftContractAddress = _assets[counterId].nftcontract;
         nftTokenId = _assets[counterId].nftTokenId;
         loanAmount = _assets[counterId].loanAmount;
-        loanCost = _assets[counterId].loanCost;
+        loanInterest = _assets[counterId].loanInterest;
         // feesCost = calculatedFee(lendCost);
         payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
         payBackAfterLoan = _assets[counterId].payBackAfterLoan;
@@ -268,7 +268,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         paymentContract: address(_paymentAddress),
         listingTime: clockTimeStamp(),
         loanAmount:_loanAmounLoanCost[0],
-        loanCost: _loanAmounLoanCost[1],
+        loanInterest: _loanAmounLoanCost[1],
         paidInterest:0,
         payAmountAfterLoan:_loanAmounLoanCost[0] + _loanAmounLoanCost[1],
         payBackAfterLoan:0,
@@ -287,7 +287,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(_loanAmounLoanCost[2] >= calculatedFee(_m.loanAmount),"fee");
         require(_verify(_lender, _hashLending (
             nonce,_m.paymentContract,_offeredTime,
-            _m.loanAmount,_m.loanCost,_m.nftcontract,
+            _m.loanAmount,_m.loanInterest,_m.nftcontract,
             msg.sender,_m.nftTokenId,_m.gist)
             ,signature),"Invalid signature");
         
@@ -310,7 +310,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _lender,
             _m.paymentContract,
             _m.loanAmount,
-            _m.loanCost,
+            _m.loanInterest,
             _m.payAmountAfterLoan, 
             _m.gist);
     }
@@ -385,7 +385,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
         // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
-        require(calculatedInterestFee(_m.loanCost - _m.paidInterest) <= fee_, "fees");
+        require(calculatedInterestFee(_m.loanInterest - _m.paidInterest) <= fee_, "fees");
         _assets[_counterId].payBackAfterLoan +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
@@ -393,7 +393,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _burn(_nft.lenderBalances);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId, calculatedInterestFee(_m.loanCost - _m.paidInterest),proof );
+        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId, calculatedInterestFee(_m.loanInterest - _m.paidInterest),proof );
 
     }
    
@@ -420,7 +420,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(ownerOf(_nft.lenderBalances)== msg.sender,"not a lender");
         require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
-        uint256 remaining = _m.loanCost - _m.paidInterest;
+        uint256 remaining = _m.loanInterest - _m.paidInterest;
         require(fee_ >= calculatedInterestFee(remaining),"fee");
         _burn(_nft.borrowerBalances);
         _burn(_nft.lenderBalances);
