@@ -91,8 +91,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 loanAmount;
         uint256 loanInterest;
         uint256 paidInterest;
-        uint256 payAmountAfterLoan;
-        uint256 payBackAfterLoan;
+        uint256 paymentLoan;
+        uint256 totalPaid;
         uint256 termId;
         bool isPaid;
         // address lender;
@@ -122,7 +122,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         address currentAddress,
         uint256 loanAmount,
         uint256 loanInterest,
-        uint256 payAmountAfterLoan,
+        uint256 paymentLoan,
         bytes32 gist
     );
 
@@ -130,7 +130,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     event WithdrawLog(address indexed contracts, address indexed account, uint amount);
     
-    event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 payAmountAfterLoan, bytes32 gist  );
+    event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 paymentLoan, bytes32 gist  );
     
     event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
     
@@ -199,10 +199,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 termId,
         // address lender,
         // address nftOwner,
-        address nftContractAddress,
-        uint256 nftTokenId,
+        address nftContractAddress, uint256 nftTokenId,
         uint256 loanAmount, uint256 loanInterest, 
-        uint256 payAmountAfterLoan, uint256 payBackAfterLoan, bool isPaid) {
+        uint256 paymentLoan, uint256 totalPaid, bool isPaid) {
 
         paymentAddress = _assets[counterId].paymentContract;
         listingTime = _assets[counterId].listingTime;
@@ -214,8 +213,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         loanAmount = _assets[counterId].loanAmount;
         loanInterest = _assets[counterId].loanInterest;
         // feesCost = calculatedFee(lendCost);
-        payAmountAfterLoan = _assets[counterId].payAmountAfterLoan;
-        payBackAfterLoan = _assets[counterId].payBackAfterLoan;
+        paymentLoan = _assets[counterId].paymentLoan;
+        totalPaid = _assets[counterId].totalPaid;
         isPaid = _assets[counterId].isPaid;
     }
    
@@ -270,8 +269,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         loanAmount:_loanAmounLoanCost[0],
         loanInterest: _loanAmounLoanCost[1],
         paidInterest:0,
-        payAmountAfterLoan:_loanAmounLoanCost[0] + _loanAmounLoanCost[1],
-        payBackAfterLoan:0,
+        paymentLoan:_loanAmounLoanCost[0] + _loanAmounLoanCost[1],
+        totalPaid:0,
         termId:1,
         isPaid:false,
         // lender:_lender,
@@ -311,7 +310,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _m.paymentContract,
             _m.loanAmount,
             _m.loanInterest,
-            _m.payAmountAfterLoan, 
+            _m.paymentLoan, 
             _m.gist);
     }
   
@@ -342,12 +341,12 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(calculatedInterestFee(loanTimestampPaymentInterest[2]) <= fee_, "fees");
         _assets[_counterId].paidInterest += loanTimestampPaymentInterest[2];
         _assets[_counterId].termId++;        
-        _assets[_counterId].payBackAfterLoan +=  loanPayment ;
+        _assets[_counterId].totalPaid +=  loanPayment ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanPayment);
         LendingAssets memory _after = _assets[_counterId];
 
-        if (_after.payBackAfterLoan >= _after.payAmountAfterLoan ){
+        if (_after.totalPaid >= _after.paymentLoan ){
             _burn(_nft.borrowerBalances);
             _burn(_nft.lenderBalances);
             _assets[_counterId].isPaid = true;
@@ -386,7 +385,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
         require(calculatedInterestFee(_m.loanInterest - _m.paidInterest) <= fee_, "fees");
-        _assets[_counterId].payBackAfterLoan +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
+        _assets[_counterId].totalPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
         _burn(_nft.borrowerBalances);
@@ -511,7 +510,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
               _offeredTime, interest, gist), signature), "lender signature");
         _assets[_counterId].gist = gist;
         // _assets[_counterId].loanTerm = loanTerm;
-        _assets[_counterId].payAmountAfterLoan += interest;
+        _assets[_counterId].paymentLoan += interest;
      
         emit ExtendTimeLog(
             _counterId, 
