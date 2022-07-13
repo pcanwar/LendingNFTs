@@ -11,6 +11,48 @@ Install with npm
     
 ## Lending
 
+##  Events
+
+```sh
+
+    # Event for submiting and starting a new lending/borowing  
+    event AssetsLog(
+        uint256 counter,
+        address indexed owner,
+        address indexed tokenAddress,
+        uint256 tokenId,
+        address indexed lender,
+        address currentAddress,
+        uint256 loanAmount,
+        uint256 loanInterest,
+        uint256 paymentLoan,
+        bytes32 gist
+    );
+
+    # Event for cancelling the nonce  
+    event CancelLog(address indexed lender, uint256 nonce, bool IsUninterested);
+   
+    # Event for extending the time   
+    event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 paymentLoan, bytes32 gist  );
+    
+
+    # Event for making payment. 
+    # make payment is a way to pay a loan that based on the terms by a borrower.
+    event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
+
+    # Event for making pre payment. 
+    # Pre payment is an early repayment of a loan by a borrower 
+    event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 preStamp, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] proof, bytes32 [] preProof );
+
+    # * Since paylog event does not get the address of the lander and borrower, we need to listen to Trnasfer action 
+    event Transfer(from, to, tokenId)    
+
+    # Event for defaulting on NFT loan. it occurs when the borrower fails to pay the loan on time.  
+    event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
+    
+
+```
+
 ## 🛠 Usage/Examples
 
 

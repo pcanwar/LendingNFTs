@@ -132,9 +132,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 paymentLoan, bytes32 gist  );
     
-    event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
+    // event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
     
-    event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 fee,bytes32 [] proof );
+    event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 preStamp, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] proof, bytes32 [] preProof );
 
     event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
 
@@ -392,7 +392,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _burn(_nft.lenderBalances);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId, calculatedInterestFee(_m.loanInterest - _m.paidInterest),proof );
+        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId,preLoanTimes[0], loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId, calculatedInterestFee(_m.loanInterest - _m.paidInterest),proof,preProof );
 
     }
    
