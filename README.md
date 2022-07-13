@@ -44,6 +44,7 @@ Install with npm
     # Pre payment is an early repayment of a loan by a borrower 
     event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 preStamp, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] proof, bytes32 [] preProof );
 
+
     # * Since paylog event does not get the address of the lander and borrower, we need to listen to Trnasfer action 
     event Transfer(from, to, tokenId)    
 
@@ -124,7 +125,7 @@ it gets sent to the chain by the borrower.
                 // offeredTime is a timestamp that should be in the future, otherwise this sig will be expired. 
                 { name: 'loanAmount', type: 'uint256'}, 
                 // Begining Balance
-                { name: 'loanCost', type: 'uint256'}, 
+                { name: 'loanInterest', type: 'uint256'}, 
                 // Total Interest
                 { name: 'nftcontract', type: 'address'},
                 { name: 'nftOwner', type: 'address'},
@@ -137,7 +138,7 @@ it gets sent to the chain by the borrower.
                 paymentContract:u20.address,
                 offeredTime: Number(1656459017),
                 loanAmount:lendingAmount,
-                loanCost:interest,
+                loanInterest:interest,
                 nftcontract:nft721.address,
                 nftOwner:borrower.address,
                 nftTokenId:Number(1),
