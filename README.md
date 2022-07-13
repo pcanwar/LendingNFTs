@@ -11,7 +11,7 @@ Install with npm
     
 ## Lending
 
-##  Events
+## 🎤 Events
 
 ```sh
 
