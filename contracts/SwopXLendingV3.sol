@@ -47,11 +47,13 @@ contract SwopXLendingAssets is EIP712 {
     }
 
 
-    function _hashBorrower(bytes32 gist) 
+    function _hashBorrower(address nftcontract,uint256 nftTokenId, bytes32 gist) 
         public view returns (bytes32)
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Borrowing(bytes32 gist)"),           
+            keccak256("Borrowing(address nftcontract,uint256 nftTokenId,bytes32 gist)"),    
+            nftcontract,
+            nftTokenId,           
             gist
         )));
     }
@@ -305,8 +307,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _m.loanAmount,_m.loanInterest,_m.nftcontract,
             msg.sender,_m.nftTokenId,_m.gist)
             ,lenderSignature),"Invalid lender signature");
-
-        require(_verify(msg.sender, _hashBorrower (_m.gist),borrowerSignature),"Invalid borrower signature");
+        require(_verify(msg.sender, _hashBorrower (_m.nftcontract,_m.nftTokenId,_m.gist),borrowerSignature),"Invalid borrower signature");
 
         uint256 counterId = counter();
         _assets[counterId] = _m;
