@@ -173,7 +173,7 @@ describe("Landing", function () {
                 nftcontract:nft721.address,
                 nftTokenId:Number(1),
                 offeredTime: Number(1656459017),
-                loanInterest: 2,
+                loanInterest: Number(2),
                 gist: root
                 
               },
