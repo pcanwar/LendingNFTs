@@ -572,9 +572,24 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     */
     function withdraw(address _contract, address _to, uint256 _amount) external onlyOwner {
         IERC20(_contract).safeTransfer(_to, _amount);
+
         emit WithdrawLog(_contract, _to, _amount);
     }
 
+
+    /*
+    * @notice: to withdraw the fees
+    * @param _contract address of the erc20 token
+    * @param _to address of the receiver address
+    * @param _amount uint256 of amount 
+    */
+    function withdrawFunds(address _contract, address _to, uint256 _amount) external onlyOwner {
+        
+        
+        IERC20(_contract).safeTransfer(_to, _amount);
+        
+        emit WithdrawLog(_contract, _to, _amount);
+    }
 
     /*
     * @notice: burn function is called when all payment made or the nft gets defulted
