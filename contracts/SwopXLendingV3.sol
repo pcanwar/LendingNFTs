@@ -47,11 +47,12 @@ contract SwopXLendingAssets is EIP712 {
     }
 
 
-    function _hashBorrower(address nftcontract,uint256 nftTokenId, bytes32 gist) 
+    function _hashBorrower(uint256 nonce,address nftcontract,uint256 nftTokenId, bytes32 gist) 
         public view returns (bytes32)
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Borrowing(address nftcontract,uint256 nftTokenId,bytes32 gist)"),    
+            keccak256("Borrowing(uint256 nonce,address nftcontract,uint256 nftTokenId,bytes32 gist)"),
+            nonce,
             nftcontract,
             nftTokenId,           
             gist
@@ -109,6 +110,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 termId;
         bool isPaid;
         uint256 lenderNonce;
+        uint256 borrowerNonce;
         // address lender;
         address nftcontract;
         // address nftOwner;
@@ -203,7 +205,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
 
     function _timeExpired(uint256 time) private pure returns(uint256) {
-        return 7 days * time;
+        return 7 days + time;
     }
 
     // return the assets 
@@ -214,7 +216,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // address lender,
         // address nftOwner,
         address nftContractAddress, uint256 nftTokenId,
-        uint256 loanAmount, uint256 loanInterest, 
+        uint256 loanAmount, uint256 loanInterest, uint256 paidInterest,
         uint256 paymentLoan, uint256 totalPaid, bool isPaid) {
 
         paymentAddress = _assets[counterId].paymentContract;
@@ -226,6 +228,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         nftTokenId = _assets[counterId].nftTokenId;
         loanAmount = _assets[counterId].loanAmount;
         loanInterest = _assets[counterId].loanInterest;
+        paidInterest = _assets[counterId].paidInterest;
         // feesCost = calculatedFee(lendCost);
         paymentLoan = _assets[counterId].paymentLoan;
         totalPaid = _assets[counterId].totalPaid;
@@ -272,7 +275,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param _gist bytes32
     * @param signature bytes
     */
-   function submit(uint256  nonce , address _paymentAddress, address _lender, 
+   function submit(uint256 [2] calldata nonces , address _paymentAddress, address _lender, 
                 address _nftcontract, 
                 uint256 _nftTokenId,
                  uint256 [3] calldata _loanAmounLoanCost,
@@ -289,7 +292,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         totalPaid:0,
         termId:1,
         isPaid:false,
-        lenderNonce: nonce,
+        borrowerNonce: nonces[0],
+        lenderNonce: nonces[1],
+
         // lender:_lender,
         nftcontract:_nftcontract,
         // nftOwner:msg.sender,
@@ -307,7 +312,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _m.loanAmount,_m.loanInterest,_m.nftcontract,
             msg.sender,_m.nftTokenId,_m.gist)
             ,lenderSignature),"Invalid lender signature");
-        require(_verify(msg.sender, _hashBorrower (_m.nftcontract,_m.nftTokenId,_m.gist),borrowerSignature),"Invalid borrower signature");
+        require(_verify(msg.sender, _hashBorrower (_m.borrowerNonce,_m.nftcontract,_m.nftTokenId,_m.gist),borrowerSignature),"Invalid borrower signature");
 
         uint256 counterId = counter();
         _assets[counterId] = _m;
@@ -352,7 +357,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         Receipt memory _nft = _receipt[_counterId];
         require(term_ == _m.termId, "term does not matched");
         require(_verifyTree(_leaf(term_ , loanTimestampPaymentInterest), proof, _m.gist), "Invalid proof");
-        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
+        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimestampPaymentInterest[0]) >= clockTimeStamp(), "Default");
         uint256 loanPayment = loanTimestampPaymentInterest[1] + loanTimestampPaymentInterest[2];
@@ -396,10 +401,10 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(_verifyTree(_leaf(0 , preLoanTimes), preProof, _m.gist), "Invalid proof");
         require(_verifyTree(_leaf(term_, loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
         require(preLoanTimes[0]>= clockTimeStamp(),"Expired" );
-        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
+        // require
+        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
-
-        // require(_timeExpired(perloanTimestampLoanPaymentLoanInterest[0]) >= _time, "Expired");
+        require(_timeExpired(loanTimesPaymentInterest[0]) >= clockTimeStamp(), "Term Time Expired");
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
         // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
@@ -435,7 +440,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(_m.isPaid != true, "is paid already");
         uint256 term_ = _m.termId ;
         require(_verifyTree(_leaf(term_ , loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
-        require(ownerOf(_nft.lenderBalances)== msg.sender,"not a lender");
+        require(ownerOf(_nft.lenderBalances)== msg.sender,"Only the Owner of the NFT lender receipt");
         require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         uint256 remaining = _m.loanInterest - _m.paidInterest;
