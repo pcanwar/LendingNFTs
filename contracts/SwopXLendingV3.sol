@@ -60,20 +60,36 @@ contract SwopXLendingAssets is EIP712 {
     }
 
 
-    function _hashextend(address nftcontract,
-    uint256 nftTokenId, uint256 offerTime, uint256 interest, bytes32 gist) 
+    function _hashextend(uint256 nonce,address nftcontract,
+    uint256 nftTokenId, uint256 offerTime, uint256 loanInterest, bytes32 gist) 
     internal view returns (bytes32)
  
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Extending(address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 interest,bytes32 gist)"),
+            keccak256("Extending(uint256 nonce,address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 loanInterest,bytes32 gist)"),
+            nonce,
             nftcontract,
             nftTokenId,
             offerTime,
-            interest,
+            loanInterest,
             gist
         )));
     }
+
+    // _hashBorrowerExtend(nonces[0], _m.nftcontract,_m.nftTokenId, gist), borrowerSignature),
+    // function _hashBorrowerExtend(uint256 nonce,address nftcontract,
+    // uint256 nftTokenId, bytes32 gist) 
+    // internal view returns (bytes32)
+ 
+    // {
+    //     return _hashTypedDataV4(keccak256(abi.encode(
+    //         keccak256("Extending(uint256 nonce,address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 interest,bytes32 gist)"),
+    //         nonce,
+    //         nftcontract,
+    //         nftTokenId,
+    //         gist
+    //     )));
+    // }
 
     function _verify(address signer, bytes32 digest, bytes memory signature)
     internal view returns (bool)
@@ -279,7 +295,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
                 address _nftcontract, 
                 uint256 _nftTokenId,
                  uint256 [3] calldata _loanAmounLoanCost,
-                uint256 _offeredTime, bytes32 _gist, bytes calldata lenderSignature, bytes calldata borrowerSignature) 
+                uint256 _offeredTime, bytes32 _gist, bytes calldata borrowerSignature, bytes calldata lenderSignature) 
         external whenNotPaused nonReentrant supportInterface(_paymentAddress) 
        {
         LendingAssets memory _m = LendingAssets({
@@ -510,8 +526,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         fee = callItFee / 2e4;
     }
 
-
-
     /*
     * @notice: borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
                 the offeredTime value has to be not expired with a current time.
@@ -522,20 +536,23 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param gist bytes32 new root
     * @param signature bytes32 a new sig of the lender 
     */
-   function extendTheTime(uint256 _counterId, uint256 interest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,bytes calldata signature) 
+   function extendTheTime(uint256 [2] calldata nonces, uint256 _counterId, uint256 loanInterest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,
+   bytes [2] calldata signatures) 
    nonReentrant external {
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
-
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(currentTerm_ == _m.termId,"term does not matched");
         require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
-        require(_verify(ownerOf(_nft.lenderBalances), _hashextend(_m.nftcontract,_m.nftTokenId,
-              _offeredTime, interest, gist), signature), "lender signature");
+
+        require(_verify(ownerOf(_nft.lenderBalances), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
+              _offeredTime, loanInterest, gist), signatures[1]), "Lender signature");
+        
+        require(_verify(msg.sender, _hashBorrower(nonces[0], _m.nftcontract,_m.nftTokenId, gist), signatures[0]), "Borrower signature");
         _assets[_counterId].gist = gist;
         // _assets[_counterId].loanTerm = loanTerm;
-        _assets[_counterId].paymentLoan += interest;
-     
+        _assets[_counterId].paymentLoan = _m.loanAmount + loanInterest;
+        _assets[_counterId].loanInterest = loanInterest;
         emit ExtendTimeLog(
             _counterId, 
             _m.nftcontract,
