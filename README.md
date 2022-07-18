@@ -291,13 +291,15 @@ this to renew the root
 /*
 * @notice:  borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
             the offeredTime value has to be not expired with a current time.
+* @param nonces uint256 is an arry of borrower's nonce and lender's nonce.
 * @param _counterId uint256 Id of the receipt NFT
-* @param interest uint256 new total insterst 
+* @param loanInterest uint256 new total insterst 
 * @param currentTerm_ uint256 the cuurent term that already paid 
 * @param _offeredTime uint256  it has to be greater then current timestamp otherwise it will be expired offer
 * @param gist bytes32 new root
-* @param signature bytes32 a new sig of the lender 
+* @param signatures bytes32 aare an arry of borrower's sig and the lender's sig
 */
-const extendTheTime = await swopXLanding.connect(borrower).extendTheTime( _counterId, interest, currentTerm_, _offeredTime, gist , signature) 
+const extendTheTime = await swopXLanding.connect(borrower).extendTheTime(nonces [2], _counterId,  loanInterest,  currentTerm_,  _offeredTime,  gist ,
+signatures [2]) 
 
 ```
