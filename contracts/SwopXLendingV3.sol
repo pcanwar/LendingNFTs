@@ -101,12 +101,16 @@ contract SwopXLendingAssets is EIP712 {
 
 
 contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
+    
+    
+    address immutable receiverAddress = address(this);
 
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     Counters.Counter private _IdCounter;  
     Counters.Counter private _nftCounter;  
-    // Counters.Counter private _termId;  
+    // Counters.Counter private _termId;
+
     uint256 private txfee;
 
     uint256 private txInterestfee;
@@ -170,9 +174,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
     event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
 
-    event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint fee);
+    event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
     
     event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
+
+    event FeeLog(address account, uint256 loanFee, uint256 interestFee );
 
     constructor() ERC721("SwopX", "SWING") {
         txfee = 200;
@@ -200,6 +206,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     function resetTxFee(uint256 _fee, uint256 _txInterestfee) public onlyOwner { 
         txfee = _fee;
         txInterestfee = _txInterestfee;
+        emit FeeLog(msg.sender, txfee, txInterestfee);
     }
 
 
@@ -570,26 +577,26 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param _to address of the receiver address
     * @param _amount uint256 of amount 
     */
-    function withdraw(address _contract, address _to, uint256 _amount) external onlyOwner {
+    function withdraw(address _contract, address _to) external onlyOwner {
+        uint _amount = IERC20(_contract).balanceOf(receiverAddress);
         IERC20(_contract).safeTransfer(_to, _amount);
-
         emit WithdrawLog(_contract, _to, _amount);
     }
 
-
     /*
-    * @notice: to withdraw the fees
+    * @notice: to withdraw the ETH
     * @param _contract address of the erc20 token
     * @param _to address of the receiver address
     * @param _amount uint256 of amount 
     */
-    function withdrawFunds(address _contract, address _to, uint256 _amount) external onlyOwner {
-        
-        
-        IERC20(_contract).safeTransfer(_to, _amount);
-        
-        emit WithdrawLog(_contract, _to, _amount);
+    function withdraw(address payable to) external onlyOwner {
+        uint256 getBalance = address(this).balance;
+        to.transfer(getBalance);
+        emit WithdrawLog(address(this), to, getBalance);
     }
+
+
+    
 
     /*
     * @notice: burn function is called when all payment made or the nft gets defulted
