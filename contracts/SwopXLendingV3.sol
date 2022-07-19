@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -76,21 +76,6 @@ contract SwopXLendingAssets is EIP712 {
         )));
     }
 
-    // _hashBorrowerExtend(nonces[0], _m.nftcontract,_m.nftTokenId, gist), borrowerSignature),
-    // function _hashBorrowerExtend(uint256 nonce,address nftcontract,
-    // uint256 nftTokenId, bytes32 gist) 
-    // internal view returns (bytes32)
- 
-    // {
-    //     return _hashTypedDataV4(keccak256(abi.encode(
-    //         keccak256("Extending(uint256 nonce,address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 interest,bytes32 gist)"),
-    //         nonce,
-    //         nftcontract,
-    //         nftTokenId,
-    //         gist
-    //     )));
-    // }
-
     function _verify(address signer, bytes32 digest, bytes memory signature)
     internal view returns (bool)
     {
@@ -104,20 +89,13 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     
     address immutable receiverAddress = address(this);
-
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     Counters.Counter private _IdCounter;  
     Counters.Counter private _nftCounter;  
-    // Counters.Counter private _termId;
-
     uint256 private txfee;
-
     uint256 private txInterestfee;
     string private _baseMetadata;
-
-    // mapping(uint256 => uint256) private interest;
-    // mapping(uint256 => mapping(address => uint256)) private balances;
 
     struct LendingAssets {
         address paymentContract;
@@ -149,6 +127,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     mapping(address => mapping(uint256 => bool)) private identifiedSignature;
 
     // Event for submiting and starting a new lending/borowing  
+
     event AssetsLog(
         uint256 counter,
         address indexed owner,
@@ -180,6 +159,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
     event FeeLog(address account, uint256 loanFee, uint256 interestFee );
 
+    event CryptoLog(address contracts, bool isSupported);
+
+
     constructor() ERC721("SwopX", "SWING") {
         txfee = 200;
         txInterestfee = 1000;
@@ -190,12 +172,15 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(erc20Addrs[IERC20(_contract)] == true,"Contract address is not Supported ");
         _;
     }
+    modifier zeroAddress(address _contract) {
+        require( _contract != address(0) , "Zero Address");
+        _;
+    }
 
     modifier timeExpired(uint256 _time) {
         require(_time>= block.timestamp,"Expired");
         _;
     }
-
 
   
     /*
@@ -210,20 +195,22 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
 
 
-    // only owner of the contract is allowed to change max number of months . 
-    // 1 year = 12 month , and 2 year is 24 months
-    // function resetMaximumTenure(uint256 _maximumTenure) public onlyOwner { 
-    //     maximumTenure = _maximumTenure;
-    // }
-
-    // add ERC20 token contract address
-    function addToken(address _contract, bool _mode) external onlyOwner {
-        require( _contract != address(0) , "Zero Address");
-        erc20Addrs[IERC20(_contract)] = _mode;    
+    /*
+    * @notice: addToken function for adding cryptocurancy contract address 
+    * @param _contract address is a contract address  
+    * @param _mode bool true/ false 
+    */
+    function addToken(address _contract, bool _mode) external 
+    zeroAddress(_contract) onlyOwner {
+        erc20Addrs[IERC20(_contract)] = _mode;
+        emit CryptoLog(_contract, _mode) ;
     }
 
-    // check what ERC20 token is available
-    function currencyTokens(address _contract) external view returns(bool){
+    /*
+    * @notice: check if a cryptocurrency address is supported
+    */
+    function currencyTokens(address _contract) external
+    zeroAddress(_contract) view returns(bool){
         return erc20Addrs[IERC20(_contract)];
     }
 
@@ -303,7 +290,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
                 uint256 _nftTokenId,
                  uint256 [3] calldata _loanAmounLoanCost,
                 uint256 _offeredTime, bytes32 _gist, bytes calldata borrowerSignature, bytes calldata lenderSignature) 
-        external whenNotPaused nonReentrant supportInterface(_paymentAddress) 
+        external whenNotPaused nonReentrant supportInterface(_paymentAddress)
        {
         LendingAssets memory _m = LendingAssets({
         paymentContract: address(_paymentAddress),
@@ -443,6 +430,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
     }
    
+
+    /* clockTimeStamp function returns a timestamp
+    */
     function clockTimeStamp() private view returns(uint256 x){
         x = block.timestamp;
     }
@@ -498,11 +488,12 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param nonce uint256 is used once on the backend and once for canceling an offer
     * @param _lender address
     */
-    function cancel(uint256 nonce, address _lender) external  {
-        require(_lender == msg.sender, "Not a Lender");
-        require(identifiedSignature[_lender][nonce] != true, "Not interested");
-        identifiedSignature[_lender][nonce] = true;
-        emit CancelLog(_lender,nonce, true);
+    function cancel(uint256 nonce, address _account)  external 
+    zeroAddress(_account) {
+        require(_account == msg.sender, "Not a sender");
+        require(identifiedSignature[_account][nonce] != true, "Not interested");
+        identifiedSignature[_account][nonce] = true;
+        emit CancelLog(_account, nonce, true);
     }
     
 
@@ -577,7 +568,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param _to address of the receiver address
     * @param _amount uint256 of amount 
     */
-    function withdraw(address _contract, address _to) external onlyOwner {
+    function withdraw(address _contract, address _to) external 
+    zeroAddress(_contract) onlyOwner {
         uint _amount = IERC20(_contract).balanceOf(receiverAddress);
         IERC20(_contract).safeTransfer(_to, _amount);
         emit WithdrawLog(_contract, _to, _amount);
@@ -589,7 +581,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param _to address of the receiver address
     * @param _amount uint256 of amount 
     */
-    function withdraw(address payable to) external onlyOwner {
+    function withdraw(address payable to) external 
+    zeroAddress(to) onlyOwner {
         uint256 getBalance = address(this).balance;
         to.transfer(getBalance);
         emit WithdrawLog(address(this), to, getBalance);
@@ -629,20 +622,24 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return MerkleProof.verify(proof, gist, leaf);
     }
 
-    function onERC721Received(address , address , uint256 , bytes memory) external pure override returns (bytes4){
-        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
-    }
-
-   
+    /**
+     * @notice Only owner can set URI for this contract . 
+     */
     function setURI(string calldata baseURI_) external  onlyOwner {
         _baseMetadata = baseURI_;
     }
 
+
+    /**
+     * @dev Base URI for this token contract . 
+     */
     function baseURI() external view returns (string memory) {
         return _baseMetadata;
     }
 
-
+    /**
+     * @dev Returns (URI) for a token Id.
+     */
     function tokenURI(uint256 tokenId)
         public
         view
@@ -652,10 +649,34 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return super.tokenURI(tokenId);
     }
 
-    function totalSupply() public view  returns (uint256) {
+    /**
+     * @dev Returns the total number of loans.
+     */
+    function totalLoan() public view  returns (uint256) {
         return _IdCounter.current() ;
     }
+    
+    /**
+     * @dev Returns the total number of tokens in existence.
+     * Burned tokens will reduce the count.
+     */
+    function totalSupply() public view  returns (uint256) {
+        return _nftCounter.current(); 
+    }
 
+
+    /**
+    * Interface of ERC721 token receiver.
+    */
+    function onERC721Received(address , address , uint256 , bytes memory) external pure override returns (bytes4){
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+
+
+    /**
+     * @dev Returns true if this contract implements the interface defined by
+     * [EIP section](https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified)     *
+    */
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -665,7 +686,10 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return super.supportsInterface(interfaceId);
     }
     
-    
+    /**
+     * @dev Hook to execute functionality before the token is transferred
+     * 'openzeppelin'
+     */
     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
         internal
         override(ERC721)

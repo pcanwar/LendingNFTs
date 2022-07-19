@@ -44,7 +44,6 @@ Install with npm
     # Pre payment is an early repayment of a loan by a borrower 
     event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 preStamp, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] proof, bytes32 [] preProof );
 
-
     # * Since paylog event does not get the address of the lander and borrower, we need to listen to Trnasfer action 
     event Transfer(from, to, tokenId)    
 
