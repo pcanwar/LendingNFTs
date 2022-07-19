@@ -232,14 +232,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         paymentAddress = _assets[counterId].paymentContract;
         listingTime = _assets[counterId].listingTime;
         termId = _assets[counterId].termId;
-        // lender = _assets[counterId].lender;
-        // nftOwner = _assets[counterId].nftOwner;
         nftContractAddress = _assets[counterId].nftcontract;
         nftTokenId = _assets[counterId].nftTokenId;
         loanAmount = _assets[counterId].loanAmount;
         loanInterest = _assets[counterId].loanInterest;
         paidInterest = _assets[counterId].paidInterest;
-        // feesCost = calculatedFee(lendCost);
         paymentLoan = _assets[counterId].paymentLoan;
         totalPaid = _assets[counterId].totalPaid;
         isPaid = _assets[counterId].isPaid;
