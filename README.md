@@ -302,3 +302,22 @@ const extendTheTime = await swopXLanding.connect(borrower).extendTheTime(nonces 
 signatures [2]) 
 
 ```
+
+
+```javascript
+   /*   paymentAddress is the cryptocurrency address 
+        listingTime is the start time of the loan
+        termId is the current term 
+        nftContractAddress is the nft contract address
+        nftTokenId is an nft id
+        totalPrincipal is the total principal of this loan
+        totalInterest is the total interest of this loan
+        totalInterestPaid is interest of what the borrower has paid
+        totalAmountLoan is totalPrincipal + totalInterest
+        totalAmountPaid is what the borrower has paid incloduing principal and interest
+        isPaid if the total loan is paid
+    */ 
+const counterId = 1;
+const assets = await swopXLanding.connect.assets( counterId)
+
+```
