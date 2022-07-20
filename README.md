@@ -318,6 +318,6 @@ signatures [2])
         isPaid if the total loan is paid
     */ 
 const counterId = 1;
-const assets = await swopXLanding.connect.assets( counterId)
+const assets = await swopXLanding.assets( counterId)
 
 ```
