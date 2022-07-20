@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
+
 interface iSwopXLending {
     function currencyTokens(address _contract) external
     view returns(bool);

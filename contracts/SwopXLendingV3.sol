@@ -27,18 +27,18 @@ contract SwopXLendingAssets is EIP712 {
     }
 
     function _hashLending(uint256 nonce,address paymentContract,
-        uint256 offeredTime,uint256 loanAmount,uint256 loanInterest,
+        uint256 offeredTime,uint256 totalPrincipal,uint256 totalInterest,
         address nftcontract,address nftOwner,
         uint256 nftTokenId,bytes32 gist) 
         public view returns (bytes32)
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Landing(uint256 nonce,address paymentContract,uint256 offeredTime,uint256 loanAmount,uint256 loanInterest,address nftcontract,address nftOwner,uint256 nftTokenId,bytes32 gist)"),
+            keccak256("Landing(uint256 nonce,address paymentContract,uint256 offeredTime,uint256 totalPrincipal,uint256 totalInterest,address nftcontract,address nftOwner,uint256 nftTokenId,bytes32 gist)"),
             nonce,
             paymentContract,
             offeredTime,
-            loanAmount,
-            loanInterest,
+            totalPrincipal,
+            totalInterest,
             nftcontract,
             nftOwner,
             nftTokenId,            
@@ -61,17 +61,17 @@ contract SwopXLendingAssets is EIP712 {
 
 
     function _hashextend(uint256 nonce,address nftcontract,
-    uint256 nftTokenId, uint256 offerTime, uint256 loanInterest, bytes32 gist) 
+    uint256 nftTokenId, uint256 offerTime, uint256 totalInterest, bytes32 gist) 
     internal view returns (bytes32)
  
     {
         return _hashTypedDataV4(keccak256(abi.encode(
-            keccak256("Extending(uint256 nonce,address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 loanInterest,bytes32 gist)"),
+            keccak256("Extending(uint256 nonce,address nftcontract,uint256 nftTokenId,uint256 offerTime,uint256 totalInterest,bytes32 gist)"),
             nonce,
             nftcontract,
             nftTokenId,
             offerTime,
-            loanInterest,
+            totalInterest,
             gist
         )));
     }
@@ -100,11 +100,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     struct LendingAssets {
         address paymentContract;
         uint256 listingTime;
-        uint256 loanAmount;
-        uint256 loanInterest;
-        uint256 paidInterest;
-        uint256 paymentLoan;
-        uint256 totalPaid;
+        uint256 totalPrincipal;
+        uint256 totalInterest;
+        uint256 totalInterestPaid;
+        uint256 totalAmountLoan;
+        uint256 totalAmountPaid;
         uint256 termId;
         bool isPaid;
         uint256 lenderNonce;
@@ -135,9 +135,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 tokenId,
         address indexed lender,
         address currentAddress,
-        uint256 loanAmount,
-        uint256 loanInterest,
-        uint256 paymentLoan,
+        uint256 totalPrincipal,
+        uint256 totalInterest,
+        uint256 totalAmountLoan,
         bytes32 gist
     );
 
@@ -145,7 +145,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     event WithdrawLog(address indexed contracts, address indexed account, uint amount);
     
-    event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 paymentLoan, bytes32 gist  );
+    event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 totalAmountLoan, bytes32 gist  );
     
     // event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
     
@@ -218,27 +218,38 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         return 7 days + time;
     }
 
-    // return the assets 
+    /* 
+    * @notice: assets to read from the storage on the contract
+    *   paymentAddress is the cryptocurrency address 
+        listingTime is the start time of the loan
+        termId is the current term 
+        nftContractAddress is the nft contract address
+        nftTokenId is an nft id
+        totalPrincipal is the total principal of this loan
+        totalInterest is the total interest of this loan
+        totalInterestPaid is interest of what the borrower has paid
+        totalAmountLoan is totalPrincipal + totalInterest
+        totalAmountPaid is what the borrower has paid incloduing principal and interest
+        isPaid if the total loan is paid
+    */ 
     function assets(uint256 counterId) external view returns (
         address paymentAddress,
         uint256 listingTime,
         uint256 termId,
-        // address lender,
-        // address nftOwner,
         address nftContractAddress, uint256 nftTokenId,
-        uint256 loanAmount, uint256 loanInterest, uint256 paidInterest,
-        uint256 paymentLoan, uint256 totalPaid, bool isPaid) {
+        uint256 totalPrincipal, uint256 totalInterest, uint256 totalInterestPaid,
+        uint256 totalAmountLoan, uint256 totalAmountPaid, bool isPaid) {
 
         paymentAddress = _assets[counterId].paymentContract;
         listingTime = _assets[counterId].listingTime;
         termId = _assets[counterId].termId;
         nftContractAddress = _assets[counterId].nftcontract;
         nftTokenId = _assets[counterId].nftTokenId;
-        loanAmount = _assets[counterId].loanAmount;
-        loanInterest = _assets[counterId].loanInterest;
-        paidInterest = _assets[counterId].paidInterest;
-        paymentLoan = _assets[counterId].paymentLoan;
-        totalPaid = _assets[counterId].totalPaid;
+        totalPrincipal = _assets[counterId].totalPrincipal;
+        totalInterest = _assets[counterId].totalInterest;
+        totalInterestPaid = _assets[counterId].totalInterestPaid;
+        totalAmountLoan = _assets[counterId].totalAmountLoan;
+        totalAmountPaid = _assets[counterId].totalAmountPaid;
         isPaid = _assets[counterId].isPaid;
     }
    
@@ -292,11 +303,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         LendingAssets memory _m = LendingAssets({
         paymentContract: address(_paymentAddress),
         listingTime: clockTimeStamp(),
-        loanAmount:_loanAmounLoanCost[0],
-        loanInterest: _loanAmounLoanCost[1],
-        paidInterest:0,
-        paymentLoan:_loanAmounLoanCost[0] + _loanAmounLoanCost[1],
-        totalPaid:0,
+        totalPrincipal:_loanAmounLoanCost[0],
+        totalInterest: _loanAmounLoanCost[1],
+        totalInterestPaid:0,
+        totalAmountLoan:_loanAmounLoanCost[0] + _loanAmounLoanCost[1],
+        totalAmountPaid:0,
         termId:1,
         isPaid:false,
         borrowerNonce: nonces[0],
@@ -312,11 +323,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(IERC721(_m.nftcontract).ownerOf( _m.nftTokenId) == msg.sender ,"Not NFT Owner");
         require(identifiedSignature[_lender][_m.lenderNonce] != true, "Lender is not interested");
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
-        require(IERC20(_m.paymentContract).allowance(_lender, address(this)) >= _m.loanAmount, "Not enough allowance" );
-        require(_loanAmounLoanCost[2] >= calculatedFee(_m.loanAmount),"fee");
+        require(IERC20(_m.paymentContract).allowance(_lender, address(this)) >= _m.totalPrincipal, "Not enough allowance" );
+        require(_loanAmounLoanCost[2] >= calculatedFee(_m.totalPrincipal),"fee");
         
         require(_verify(_lender, _hashLending (_m.lenderNonce,_m.paymentContract,_offeredTime,
-            _m.loanAmount,_m.loanInterest,_m.nftcontract,
+            _m.totalPrincipal,_m.totalInterest,_m.nftcontract,
             msg.sender,_m.nftTokenId,_m.gist)
             ,lenderSignature),"Invalid lender signature");
         require(_verify(msg.sender, _hashBorrower (_m.borrowerNonce,_m.nftcontract,_m.nftTokenId,_m.gist),borrowerSignature),"Invalid borrower signature");
@@ -331,7 +342,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         
         IERC721(_nftcontract).safeTransferFrom(msg.sender, address(this), _m.nftTokenId);
         IERC20(_m.paymentContract).safeTransferFrom(_lender, owner(), _loanAmounLoanCost[2]);
-        IERC20(_m.paymentContract).safeTransferFrom(_lender, msg.sender, _m.loanAmount);
+        IERC20(_m.paymentContract).safeTransferFrom(_lender, msg.sender, _m.totalPrincipal);
         emit AssetsLog(
             counterId,
             msg.sender,
@@ -339,9 +350,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _m.nftTokenId,
             _lender,
             _m.paymentContract,
-            _m.loanAmount,
-            _m.loanInterest,
-            _m.paymentLoan, 
+            _m.totalPrincipal,
+            _m.totalInterest,
+            _m.totalAmountLoan, 
             _m.gist);
     }
   
@@ -370,14 +381,14 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         uint256 loanPayment = loanTimestampPaymentInterest[1] + loanTimestampPaymentInterest[2];
         require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanPayment,"Not enough allowance" );
         require(calculatedInterestFee(loanTimestampPaymentInterest[2]) <= fee_, "fees");
-        _assets[_counterId].paidInterest += loanTimestampPaymentInterest[2];
+        _assets[_counterId].totalInterestPaid += loanTimestampPaymentInterest[2];
         _assets[_counterId].termId++;        
-        _assets[_counterId].totalPaid +=  loanPayment ;
+        _assets[_counterId].totalAmountPaid +=  loanPayment ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanPayment);
         LendingAssets memory _after = _assets[_counterId];
 
-        if (_after.totalPaid >= _after.paymentLoan ){
+        if (_after.totalAmountPaid >= _after.totalAmountLoan ){
             _burn(_nft.borrowerBalances);
             _burn(_nft.lenderBalances);
             _assets[_counterId].isPaid = true;
@@ -415,15 +426,15 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
         // require(IERC20(_m.paymentContract).allowance(msg.sender, address(this)) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
-        require(calculatedInterestFee(_m.loanInterest - _m.paidInterest) <= fee_, "fees");
-        _assets[_counterId].totalPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
+        require(calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid) <= fee_, "fees");
+        _assets[_counterId].totalAmountPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
         _burn(_nft.borrowerBalances);
         _burn(_nft.lenderBalances);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.loanInterest - _m.paidInterest),preProof );
+        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof );
 
     }
    
@@ -453,7 +464,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(ownerOf(_nft.lenderBalances)== msg.sender,"Only the Owner of the NFT lender receipt");
         require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
-        uint256 remaining = _m.loanInterest - _m.paidInterest;
+        uint256 remaining = _m.totalInterest - _m.totalInterestPaid;
         require(fee_ >= calculatedInterestFee(remaining),"fee");
         _burn(_nft.borrowerBalances);
         _burn(_nft.lenderBalances);
@@ -531,7 +542,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @param gist bytes32 new root
     * @param signature bytes32 a new sig of the lender 
     */
-   function extendTheTime(uint256 [2] calldata nonces, uint256 _counterId, uint256 loanInterest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,
+   function extendTheTime(uint256 [2] calldata nonces, uint256 _counterId, uint256 totalInterest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,
    bytes [2] calldata signatures) 
    nonReentrant external {
         LendingAssets memory _m = _assets[_counterId];
@@ -541,13 +552,13 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
 
         require(_verify(ownerOf(_nft.lenderBalances), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
-              _offeredTime, loanInterest, gist), signatures[1]), "Lender signature");
+              _offeredTime, totalInterest, gist), signatures[1]), "Lender signature");
         
         require(_verify(msg.sender, _hashBorrower(nonces[0], _m.nftcontract,_m.nftTokenId, gist), signatures[0]), "Borrower signature");
         _assets[_counterId].gist = gist;
         // _assets[_counterId].loanTerm = loanTerm;
-        _assets[_counterId].paymentLoan = _m.loanAmount + loanInterest;
-        _assets[_counterId].loanInterest = loanInterest;
+        _assets[_counterId].totalAmountLoan = _m.totalPrincipal + totalInterest;
+        _assets[_counterId].totalInterest = totalInterest;
         emit ExtendTimeLog(
             _counterId, 
             _m.nftcontract,
@@ -555,7 +566,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
            ownerOf(_nft.lenderBalances),
             msg.sender,
             _m.termId,
-            _m.loanAmount,
+            _m.totalPrincipal,
             gist);
     }
 
