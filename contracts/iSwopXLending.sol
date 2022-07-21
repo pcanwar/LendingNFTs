@@ -57,4 +57,9 @@ interface iSwopXLending {
     bytes [2] calldata signatures) 
    external; 
 
+   function transferFrom(address from, address to, uint256 token) external;
+   function approve( address to, uint256 token) external;
+   function ownerOf(uint256 token) external view returns(address _address);
+
+
 }

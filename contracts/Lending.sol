@@ -9,12 +9,15 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
+
 contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
     
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
     address private immutable swopXLending = 0x7fE9a07F48bcde7E0ee7D31CbAF24c7e8934b383;
-    uint256 retokens = 1;
+    uint256 startRew = 3;
+    uint256 contRew = 1;
+
 
     // Mapping from token ID to owner address
     mapping(uint256 => address) private _owners;
@@ -23,20 +26,39 @@ contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
     mapping(address => uint256) private _balances;
 
 
-    constructor() ERC20("SwopXLendingAPI", "SAPI") {}
+    constructor() ERC20("SwopXLendingAPI", "SwopxAPIvo") {}
 
-    function _sign(address to, uint256 tokenId) internal {
+    function _sign(address to, uint256 tokenId) public {
         require(to != address(0), "ERC721: mint to the zero address");
         require(!_exists(tokenId), "ERC721: token already minted");
-
-        // _beforeTokenTransfer(address(0), to, tokenId);
-
         _balances[to] += 1;
         _owners[tokenId] = to;
-
         emit Transfer(address(0), to, tokenId);
+    }
 
-        // _afterTokenTransfer(address(0), to, tokenId);
+
+
+    function receipt(uint256 counterId) 
+    external view returns( uint256 borrowerToken, uint256 lenderToken){
+        (borrowerToken, lenderToken) =  iSwopXLending(swopXLending).receipt(counterId) ;
+
+    
+    }
+
+
+    function owners(uint256 counterId) 
+    external view returns( uint256 borrowerToken,address borrowerAddress, uint256 lenderToken,address lenderAddress){
+        (borrowerToken, lenderToken) =  iSwopXLending(swopXLending).receipt(counterId) ;
+        borrowerAddress = iSwopXLending(swopXLending).ownerOf(borrowerToken);
+        lenderAddress = iSwopXLending(swopXLending).ownerOf(lenderToken);
+    }
+
+
+    function transferAssset(address from, address to, uint256 token) 
+    external {
+        iSwopXLending(swopXLending).approve(to, token) ;
+        iSwopXLending(swopXLending).transferFrom(from, to, token) ;
+    
     }
 
     function startLoan(
@@ -46,7 +68,7 @@ contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
         uint256 _nftTokenId,
         uint256 [3] calldata _loanAmounLoanCost,
         uint256 _offeredTime, bytes32 _gist, 
-        bytes [2] calldata signature, address to)
+        bytes [2] calldata signature, uint256 id)
             external  {
                 iSwopXLending(swopXLending).submit(nonces,
                     _paymentAddress, _lender, 
@@ -54,25 +76,31 @@ contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
                     _nftTokenId,
                     _loanAmounLoanCost,
                     _offeredTime, _gist, signature[0],signature[1]);
-            _mint(to, retokens);
+            address to  = ownerOf(id);
+            _mint(to, startRew);
         
     }
 
-    function seqPayment(uint256 _counterId, uint256 term_, uint256[] calldata loanTimestampPaymentInterest, uint256 fee_, bytes32[] calldata proof, address to) 
+    function seqPayment(uint256 _counterId, uint256 term_, uint256[] calldata loanTimestampPaymentInterest, uint256 fee_,
+    bytes32[] calldata proof, uint256 id)
             external  {
             iSwopXLending(swopXLending).makePayment( _counterId, term_, 
             loanTimestampPaymentInterest, fee_, proof);
-            _mint(to, retokens);
+            address to  = ownerOf(id);
+            _mint(to, contRew);
 
     }
 
     function prePayment(uint256 _counterId, uint256 term_, 
-    uint256[] calldata loanTimesPaymentInterest, uint256[] calldata preLoanTimes,uint256 fee_, bytes32 [] calldata proof,bytes32 [] calldata preProof, address to) 
+    uint256[] calldata loanTimesPaymentInterest, 
+    uint256[] calldata preLoanTimes,uint256 fee_, 
+    bytes32 [] calldata proof,bytes32 [] calldata preProof, uint256 id)
         external  {
-            iSwopXLending(swopXLending).makePrePayment( _counterId,
+            iSwopXLending(swopXLending).makePrePayment(_counterId,
              term_, loanTimesPaymentInterest, 
              preLoanTimes, fee_, proof, preProof) ;
-            _mint(to, retokens);
+             address to  = ownerOf(id);
+            _mint(to, contRew);
     }
 
 
@@ -89,7 +117,7 @@ contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
      */
     function ownerOf(uint256 tokenId) public view  returns (address) {
         address owner = _owners[tokenId];
-        require(owner != address(0), "ERC721: invalid token ID");
+        require(owner != address(0), "Invalid token ID");
         return owner;
     }
 
@@ -120,6 +148,7 @@ contract LendingAPI is ERC20, ERC20Burnable, Pausable, Ownable {
     {
         super._beforeTokenTransfer(from, to, amount);
     }
+
 
 
 

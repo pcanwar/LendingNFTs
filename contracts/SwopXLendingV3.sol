@@ -337,7 +337,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _receipt[counterId].lenderBalances = nftCounter();
         _receipt[counterId].borrowerBalances = nftCounter();
         Receipt memory _nft = _receipt[counterId];
+        
         _safeMint(_lender, _nft.lenderBalances ) ;
+
         _safeMint(msg.sender, _nft.borrowerBalances ) ;
         
         IERC721(_nftcontract).safeTransferFrom(msg.sender, address(this), _m.nftTokenId);
