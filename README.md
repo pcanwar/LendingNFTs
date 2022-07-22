@@ -122,9 +122,9 @@ it gets sent to the chain by the borrower.
                 // erc20 address
                 { name: 'offeredTime', type: 'uint256'}, 
                 // offeredTime is a timestamp that should be in the future, otherwise this sig will be expired. 
-                { name: 'loanAmount', type: 'uint256'}, 
+                { name: 'totalPrincipal', type: 'uint256'}, 
                 // Begining Balance
-                { name: 'loanInterest', type: 'uint256'}, 
+                { name: 'totalInterest', type: 'uint256'}, 
                 // Total Interest
                 { name: 'nftcontract', type: 'address'},
                 { name: 'nftOwner', type: 'address'},
@@ -136,8 +136,8 @@ it gets sent to the chain by the borrower.
                 nonce:Number(0),
                 paymentContract:u20.address,
                 offeredTime: Number(1656459017),
-                loanAmount:lendingAmount,
-                loanInterest:interest,
+                totalPrincipal:lendingAmount,
+                totalInterest:interest,
                 nftcontract:nft721.address,
                 nftOwner:borrower.address,
                 nftTokenId:Number(1),

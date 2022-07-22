@@ -116,8 +116,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         bytes32 gist;
     }
     struct Receipt {
-        uint256 lenderBalances;
-        uint256 borrowerBalances;
+        uint256 lenderToken;
+        uint256 borrowerToken;
     }
 
     mapping(uint256 => LendingAssets) private _assets;
@@ -259,8 +259,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     function receipt(uint256 counterId) external view returns (
         uint256 lenderToken,
         uint256 borrowerToken) {
-            lenderToken = _receipt[counterId].lenderBalances;
-            borrowerToken = _receipt[counterId].borrowerBalances;
+            lenderToken = _receipt[counterId].lenderToken;
+            borrowerToken = _receipt[counterId].borrowerToken;
         }
       
     /* 
@@ -275,8 +275,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     * @notice: a counter of the NFT  
     */  
     function nftCounter() private returns(uint256 counterId){
-        _nftCounter.increment();
         counterId = _nftCounter.current();
+        _nftCounter.increment();
     }
 
 
@@ -334,13 +334,15 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
 
         uint256 counterId = counter();
         _assets[counterId] = _m;
-        _receipt[counterId].lenderBalances = nftCounter();
-        _receipt[counterId].borrowerBalances = nftCounter();
+
+        _receipt[counterId].lenderToken = nftCounter();
+        _receipt[counterId].borrowerToken = nftCounter();
+        
         Receipt memory _nft = _receipt[counterId];
         
-        _safeMint(_lender, _nft.lenderBalances ) ;
+        _mint(_lender, _nft.lenderToken ) ;
 
-        _safeMint(msg.sender, _nft.borrowerBalances ) ;
+        _mint(msg.sender, _nft.borrowerToken ) ;
         
         IERC721(_nftcontract).safeTransferFrom(msg.sender, address(this), _m.nftTokenId);
         IERC20(_m.paymentContract).safeTransferFrom(_lender, owner(), _loanAmounLoanCost[2]);
@@ -377,7 +379,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         Receipt memory _nft = _receipt[_counterId];
         require(term_ == _m.termId, "term does not matched");
         require(_verifyTree(_leaf(term_ , loanTimestampPaymentInterest), proof, _m.gist), "Invalid proof");
-        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only the Owner of the NFT borrower receipt");
+        require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimestampPaymentInterest[0]) >= clockTimeStamp(), "Default");
         uint256 loanPayment = loanTimestampPaymentInterest[1] + loanTimestampPaymentInterest[2];
@@ -387,12 +389,12 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _assets[_counterId].termId++;        
         _assets[_counterId].totalAmountPaid +=  loanPayment ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
-        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanPayment);
+        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderToken),  loanPayment);
         LendingAssets memory _after = _assets[_counterId];
 
         if (_after.totalAmountPaid >= _after.totalAmountLoan ){
-            _burn(_nft.borrowerBalances);
-            _burn(_nft.lenderBalances);
+            _burn(_nft.borrowerToken);
+            _burn(_nft.lenderToken);
             _assets[_counterId].isPaid = true;
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         }
@@ -422,7 +424,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(_verifyTree(_leaf(term_, loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
         require(preLoanTimes[0]>= clockTimeStamp(),"Expired" );
         // require
-        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only the Owner of the NFT borrower receipt");
+        require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimesPaymentInterest[0]) >= clockTimeStamp(), "Term Time Expired");
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
@@ -431,9 +433,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid) <= fee_, "fees");
         _assets[_counterId].totalAmountPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
-        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderBalances),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
-        _burn(_nft.borrowerBalances);
-        _burn(_nft.lenderBalances);
+        IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderToken),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
+        _burn(_nft.borrowerToken);
+        _burn(_nft.lenderToken);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof );
@@ -463,13 +465,13 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         require(_m.isPaid != true, "is paid already");
         uint256 term_ = _m.termId ;
         require(_verifyTree(_leaf(term_ , loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
-        require(ownerOf(_nft.lenderBalances)== msg.sender,"Only the Owner of the NFT lender receipt");
+        require(ownerOf(_nft.lenderToken)== msg.sender,"Only the Owner of the NFT lender receipt");
         require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,address(this)) >= fee_,"Not enough allowance" );
         uint256 remaining = _m.totalInterest - _m.totalInterestPaid;
         require(fee_ >= calculatedInterestFee(remaining),"fee");
-        _burn(_nft.borrowerBalances);
-        _burn(_nft.lenderBalances);
+        _burn(_nft.borrowerToken);
+        _burn(_nft.lenderToken);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, contractOwner, fee_);
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
         emit DefaultLog(_counterId, _m.nftcontract, _m.nftTokenId, msg.sender, fee_);
@@ -551,9 +553,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         Receipt memory _nft = _receipt[_counterId];
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(currentTerm_ == _m.termId,"term does not matched");
-        require(ownerOf(_nft.borrowerBalances) == msg.sender,"Only NFT owner");
+        require(ownerOf(_nft.borrowerToken) == msg.sender,"Only NFT owner");
 
-        require(_verify(ownerOf(_nft.lenderBalances), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
+        require(_verify(ownerOf(_nft.lenderToken), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
               _offeredTime, totalInterest, gist), signatures[1]), "Lender signature");
         
         require(_verify(msg.sender, _hashBorrower(nonces[0], _m.nftcontract,_m.nftTokenId, gist), signatures[0]), "Borrower signature");
@@ -565,7 +567,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _counterId, 
             _m.nftcontract,
             _m.nftTokenId,
-           ownerOf(_nft.lenderBalances),
+           ownerOf(_nft.lenderToken),
             msg.sender,
             _m.termId,
             _m.totalPrincipal,

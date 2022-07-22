@@ -1,23 +1,5 @@
 [
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_contract",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "_mode",
-				"type": "bool"
-			}
-		],
-		"name": "addToken",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -73,24 +55,6 @@
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -132,19 +96,19 @@
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "loanAmount",
+				"name": "totalPrincipal",
 				"type": "uint256"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "loanInterest",
+				"name": "totalInterest",
 				"type": "uint256"
 			},
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "paymentLoan",
+				"name": "totalAmountLoan",
 				"type": "uint256"
 			},
 			{
@@ -156,24 +120,6 @@
 		],
 		"name": "AssetsLog",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "nonce",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "_lender",
-				"type": "address"
-			}
-		],
-		"name": "cancel",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -201,32 +147,23 @@
 		"type": "event"
 	},
 	{
+		"anonymous": false,
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_counterId",
-				"type": "uint256"
+				"indexed": false,
+				"internalType": "address",
+				"name": "contracts",
+				"type": "address"
 			},
 			{
-				"internalType": "uint256[]",
-				"name": "loanTimesPaymentInterest",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "fee_",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32[]",
-				"name": "proof",
-				"type": "bytes32[]"
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isSupported",
+				"type": "bool"
 			}
 		],
-		"name": "defaultAsset",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
+		"name": "CryptoLog",
+		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -264,49 +201,6 @@
 		],
 		"name": "DefaultLog",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256[2]",
-				"name": "nonces",
-				"type": "uint256[2]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_counterId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "loanInterest",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "currentTerm_",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_offeredTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "gist",
-				"type": "bytes32"
-			},
-			{
-				"internalType": "bytes[2]",
-				"name": "signatures",
-				"type": "bytes[2]"
-			}
-		],
-		"name": "extendTheTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -350,7 +244,7 @@
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "paymentLoan",
+				"name": "totalAmountLoan",
 				"type": "uint256"
 			},
 			{
@@ -364,80 +258,29 @@
 		"type": "event"
 	},
 	{
+		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "_counterId",
+				"name": "loanFee",
 				"type": "uint256"
 			},
 			{
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "term_",
+				"name": "interestFee",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "loanTimestampPaymentInterest",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "fee_",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32[]",
-				"name": "proof",
-				"type": "bytes32[]"
 			}
 		],
-		"name": "makePayment",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_counterId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "term_",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "loanTimesPaymentInterest",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "preLoanTimes",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "fee_",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32[]",
-				"name": "proof",
-				"type": "bytes32[]"
-			},
-			{
-				"internalType": "bytes32[]",
-				"name": "preProof",
-				"type": "bytes32[]"
-			}
-		],
-		"name": "makePrePayment",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
+		"name": "FeeLog",
+		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -593,6 +436,733 @@
 		],
 		"name": "PusedTransferLog",
 		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Unpaused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "contracts",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "WithdrawLog",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "nonce",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "nftcontract",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nftTokenId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "gist",
+				"type": "bytes32"
+			}
+		],
+		"name": "_hashBorrower",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "nonce",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentContract",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "offeredTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalPrincipal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalInterest",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "nftcontract",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "nftOwner",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nftTokenId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "gist",
+				"type": "bytes32"
+			}
+		],
+		"name": "_hashLending",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_contract",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "_mode",
+				"type": "bool"
+			}
+		],
+		"name": "addToken",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "counterId",
+				"type": "uint256"
+			}
+		],
+		"name": "assets",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "paymentAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "listingTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "termId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "nftContractAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nftTokenId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalPrincipal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalInterest",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalInterestPaid",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalAmountLoan",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalAmountPaid",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isPaid",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "baseURI",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "calculatedFee",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "fee",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "calculatedInterestFee",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "fee",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "nonce",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_account",
+				"type": "address"
+			}
+		],
+		"name": "cancel",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_contract",
+				"type": "address"
+			}
+		],
+		"name": "currencyTokens",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_counterId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "loanTimesPaymentInterest",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fee_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "defaultAsset",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[2]",
+				"name": "nonces",
+				"type": "uint256[2]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_counterId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalInterest",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentTerm_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_offeredTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "gist",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "bytes[2]",
+				"name": "signatures",
+				"type": "bytes[2]"
+			}
+		],
+		"name": "extendTheTime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "getApproved",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "operator",
+				"type": "address"
+			}
+		],
+		"name": "isApprovedForAll",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_counterId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "loanTimesPaymentInterest",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "isDefaulted",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "nonce",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_lender",
+				"type": "address"
+			}
+		],
+		"name": "isNonceUsed",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "_isNonceUsed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_counterId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "term_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "loanTimestampPaymentInterest",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fee_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "makePayment",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_counterId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "term_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "loanTimesPaymentInterest",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "preLoanTimes",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fee_",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "proof",
+				"type": "bytes32[]"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "preProof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "makePrePayment",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"name": "onERC721Received",
+		"outputs": [
+			{
+				"internalType": "bytes4",
+				"name": "",
+				"type": "bytes4"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "ownerOf",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "counterId",
+				"type": "uint256"
+			}
+		],
+		"name": "receipt",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "lenderToken",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "borrowerToken",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [],
@@ -760,591 +1330,6 @@
 		"type": "function"
 	},
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "Unpaused",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_contract",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "contracts",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "WithdrawLog",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "nonce",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "nftcontract",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nftTokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "gist",
-				"type": "bytes32"
-			}
-		],
-		"name": "_hashBorrower",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "nonce",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentContract",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "offeredTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "loanAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "loanInterest",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "nftcontract",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "nftOwner",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nftTokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "gist",
-				"type": "bytes32"
-			}
-		],
-		"name": "_hashLending",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "counterId",
-				"type": "uint256"
-			}
-		],
-		"name": "assets",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "paymentAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "listingTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "termId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "nftContractAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nftTokenId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "loanAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "loanInterest",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "paidInterest",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "paymentLoan",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalPaid",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isPaid",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "baseURI",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "calculatedFee",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "fee",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "calculatedInterestFee",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "fee",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_contract",
-				"type": "address"
-			}
-		],
-		"name": "currencyTokens",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "getApproved",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "operator",
-				"type": "address"
-			}
-		],
-		"name": "isApprovedForAll",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_counterId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "loanTimesPaymentInterest",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "bytes32[]",
-				"name": "proof",
-				"type": "bytes32[]"
-			}
-		],
-		"name": "isDefaulted",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "nonce",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "_lender",
-				"type": "address"
-			}
-		],
-		"name": "isNonceUsed",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "_isNonceUsed",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "name",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"name": "onERC721Received",
-		"outputs": [
-			{
-				"internalType": "bytes4",
-				"name": "",
-				"type": "bytes4"
-			}
-		],
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "ownerOf",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "paused",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "counterId",
-				"type": "uint256"
-			}
-		],
-		"name": "receipt",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "lenderToken",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "borrowerToken",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "bytes4",
@@ -1397,6 +1382,19 @@
 	},
 	{
 		"inputs": [],
+		"name": "totalLoan",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "totalSupply",
 		"outputs": [
 			{
@@ -1406,6 +1404,73 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_contract",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			}
+		],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
