@@ -1,5 +1,18 @@
 # SwopX 
 
+## Address Info
+- Total borrowed
+- Total installment loans
+- Avg borrowed
+- Avg loan 
+- Avg durations 
+- Defult rate
+- Numbers of activity (borrowed, loan given)
+- High total balances 
+- balances
+
+
+
 ## Installation
 
 Install with npm
