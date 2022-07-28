@@ -89,13 +89,14 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     
     address immutable receiverAddress = address(this);
+    using Strings for uint256;
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     Counters.Counter private _IdCounter;  
     Counters.Counter private _nftCounter;  
     uint256 private txfee;
     uint256 private txInterestfee;
-    string private _baseMetadata;
+    // string private _baseMetadata;
 
     struct LendingAssets {
         address paymentContract;
@@ -131,6 +132,8 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     event AssetsLog(
         uint256 counter,
         address indexed owner,
+        uint256 borrowerNonce,
+        uint256 lenderNonce,
         address indexed tokenAddress,
         uint256 tokenId,
         address indexed lender,
@@ -149,9 +152,9 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     
     // event PayBackLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address indexed borrower,address lender, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
     
-    event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] preProof );
+    event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] preProof, bool isPaid);
 
-    event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof );
+    event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof, bool isPaid);
 
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
     
@@ -280,6 +283,11 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
 
 
+    function testMint () public {
+        uint a = nftCounter();
+        _mint(msg.sender, a ) ;
+        _setTokenURI(a,  string(abi.encodePacked(Strings.toString(a))));
+    }
     /*
     * @notice: the submit function is called by only the borrowers if they 
     * agree on the lending schedule loan 
@@ -341,15 +349,17 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         Receipt memory _nft = _receipt[counterId];
         
         _mint(_lender, _nft.lenderToken ) ;
-
+        _setTokenURI(_nft.lenderToken,  string(abi.encodePacked(Strings.toString(_nft.lenderToken))));
         _mint(msg.sender, _nft.borrowerToken ) ;
-        
+        _setTokenURI(_nft.borrowerToken,  string(abi.encodePacked(Strings.toString(_nft.borrowerToken))));
         IERC721(_nftcontract).safeTransferFrom(msg.sender, address(this), _m.nftTokenId);
         IERC20(_m.paymentContract).safeTransferFrom(_lender, owner(), _loanAmounLoanCost[2]);
         IERC20(_m.paymentContract).safeTransferFrom(_lender, msg.sender, _m.totalPrincipal);
         emit AssetsLog(
             counterId,
             msg.sender,
+            _m.borrowerNonce,
+            _m.lenderNonce,
             _m.nftcontract,
             _m.nftTokenId,
             _lender,
@@ -396,9 +406,14 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
             _burn(_nft.borrowerToken);
             _burn(_nft.lenderToken);
             _assets[_counterId].isPaid = true;
+            LendingAssets memory _i = _assets[_counterId];
             IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
+            emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof, _i.isPaid );
+
+        } else {
+        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof, _m.isPaid );
+
         }
-        emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof );
     }
 
     /*
@@ -438,7 +453,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         _burn(_nft.lenderToken);
         _assets[_counterId].isPaid = true;
         IERC721(_m.nftcontract).safeTransferFrom(address(this), msg.sender, _m.nftTokenId);
-        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof );
+        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof, true );
 
     }
    
@@ -483,7 +498,7 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
         * @param loanTimesPaymentInterest the arry of the term
         * @param proof of the _term array
     */
-    function isDefaulted(uint256 _counterId,  uint256[] calldata loanTimesPaymentInterest, bytes32[] calldata proof) view external returns(bool) {
+    function isDefaulted(uint256 _counterId, uint256[] calldata loanTimesPaymentInterest, bytes32[] calldata proof) view external returns(bool) {
         LendingAssets memory _m = _assets[_counterId];
         uint256 term_ = _m.termId ;
         require(_verifyTree(_leaf(term_ , loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
@@ -601,8 +616,6 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
     }
 
 
-    
-
     /*
     * @notice: burn function is called when all payment made or the nft gets defulted
     * @param tokenId uint256 ID of the token being burned
@@ -638,16 +651,16 @@ contract SwopXLendingV3 is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, I
      * @notice Only owner can set URI for this contract . 
      */
     function setURI(string calldata baseURI_) external  onlyOwner {
-        _baseMetadata = baseURI_;
+        _setBaseURI(baseURI_);
     }
 
 
     /**
      * @dev Base URI for this token contract . 
      */
-    function baseURI() external view returns (string memory) {
-        return _baseMetadata;
-    }
+    // function baseURI() external view returns (string memory) {
+    //     return _baseMetadata;
+    // }
 
     /**
      * @dev Returns (URI) for a token Id.
