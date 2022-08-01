@@ -20,27 +20,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 contract SwopXLendingAssets is EIP712 {
 
     /* 
-        SwopXLendingAssets is for borrowers and lenders to sign messages
+        SwopXLendingAssets is for lenders to sign a message  
     */
 
     constructor()  EIP712("SwopXLending","1.0"){
  
     }
 
-    /*
-    * @notice: The _hashLending function is called in the submit function
-    * The lender needs to sign :  
-    * @param nonce uint256  
-    * @param paymentContract address of the utility token address ERC20
-    * @param offeredTime uint256 is the timestamp on which an offer will expire
-    * @param totalPrincipal is the total loan amount  
-    * @param totalInterest is the total interest of the loan amount
-    * @param nftcontract address is the NFT contract address ERC721
-    * @param nftOwner is the address of the NFT owner
-    * @param nftTokenId uint256 is the NFT token ID 
-    * @param gist bytes32 is the root of a merkle tree (merkletreejs) that contrains payments
-    * @retrun bytes32
-    */
     function _hashLending(uint256 nonce,address paymentContract,
         uint256 offeredTime,uint256 totalPrincipal,uint256 totalInterest,
         address nftcontract,address nftOwner,
@@ -61,15 +47,7 @@ contract SwopXLendingAssets is EIP712 {
         )));
     }
 
-    /*
-    * @notice: The _hashBorrower function is called in the submit and extendTheTime functions
-    * The borrower needs to sign :  
-    * @param nonce uint256  
-    * @param nftcontract address is the NFT contract address ERC721
-    * @param nftTokenId uint256 is the NFT token ID 
-    * @param gist bytes32 is the root of a merkle tree (merkletreejs) that contrains payments
-    * @retrun bytes32
-    */
+
     function _hashBorrower(uint256 nonce,address nftcontract,uint256 nftTokenId, bytes32 gist) 
         public view returns (bytes32)
     {
@@ -83,17 +61,6 @@ contract SwopXLendingAssets is EIP712 {
     }
 
 
-    /*
-    * @notice: The _hashextend function is called in the extendTheTime function
-    * Inorder to extend the loan time, the lender needs to sign :  
-    * @param nonce uint256  
-    * @param nftcontract address is the NFT contract address ERC721
-    * @param nftTokenId uint256 is the NFT token ID 
-    * @param offerTime uint256 is the timestamp on which an offer will expire
-    * @param totalInterest is a new total interest of the old loan amount
-    * @param gist bytes32 is the root of a merkle tree (merkletreejs) that contrains payments
-    * @retrun bytes32
-    */
     function _hashextend(uint256 nonce,address nftcontract,
     uint256 nftTokenId, uint256 offerTime, uint256 totalInterest, bytes32 gist) 
     internal view returns (bytes32)
@@ -126,16 +93,11 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     using Strings for uint256;
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
-    // _IdCounter, is used to keep track of a new loan. Every new loan is counted
-    // it is increased in the counter function
     Counters.Counter private _IdCounter;  
-    // _nftCounter, is used to keep track of a new NFTs. Every new loan is counted, there is two NFTs are created for (the borrower and lender)
-    // it is increased in the nftCounter function
     Counters.Counter private _nftCounter;  
-    // txfee is only fee for startting a new loan and is called in submit function 
     uint256 private txfee;
-    // txInterestfee is fee for paying the interest fee. It is called in make payment, pre payment, and default functions
     uint256 private txInterestfee;
+    // string private _baseMetadata; // it is added onto ERC721 
 
     struct LendingAssets {
         address paymentContract;    // ERC20 address 
@@ -162,10 +124,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     mapping(uint256 => LendingAssets) private _assets;
     mapping(uint256 => Receipt) private _receipt;
 
-    // mapping each utility token address to a boolean 
     mapping(IERC20=> bool) private erc20Addrs;
-    // mapping each address and nonce that is used to sign a message to a boolean
-    // The sign can be canceled using the cancel function
     mapping(address => mapping(uint256 => bool)) private identifiedSignature;
 
     // Event for submiting and starting a new lending/borowing  
@@ -196,6 +155,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof);
 
     event PaymentLog(uint256 indexed counterId, bool isPaid);
+
 
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
     
@@ -258,10 +218,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         return erc20Addrs[IERC20(_contract)];
     }
 
-    /*
-    * @notice: _timeExpired is called in make payment, pre payment, and default functions
-    * This is to give the borrower 7 days before their NFTs get defaulted.
-    */
     function _timeExpired(uint256 time) private pure returns(uint256) {
         return 7 days + time;
     }
@@ -475,7 +431,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         
         LendingAssets memory _m = _assets[_counterId];
         Receipt memory _nft = _receipt[_counterId];
-
         require(term_ == _m.termId, "term does not matched");
         require(_verifyTree(_leaf(0 , preLoanTimes), preProof, _m.gist), "Invalid proof");
         require(_verifyTree(_leaf(term_, loanTimesPaymentInterest), proof, _m.gist), "Invalid proof");
@@ -483,17 +438,18 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimesPaymentInterest[0]) >= clockTimeStamp(), "Term Time Expired");
+
         // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
         // require(IERC20(_m.paymentContract).allowance(msg.sender, receiverAddress) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
         // _assets[_counterId].termId++;
-        // require(calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid) <= fee_, "fees");
+        // require(calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid) <= fee_, "fees");  
         require(calculatedInterestFee(loanTimesPaymentInterest[3]) <= fee_, "fees");
-        _burn(_nft.borrowerToken);
-        _burn(_nft.lenderToken);
         _assets[_counterId].isPaid = true;
         _assets[_counterId].totalAmountPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderToken),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
+        _burn(_nft.borrowerToken);
+        _burn(_nft.lenderToken);
         IERC721(_m.nftcontract).safeTransferFrom(receiverAddress, msg.sender, _m.nftTokenId);
         emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof, true );
 
@@ -659,7 +615,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
 
     /*
-    * @notice: burn function is called when all payment made or the nft gets defaulted
+    * @notice: burn function is called when all payment made or the nft gets defulted
     * @param tokenId uint256 ID of the token being burned
     */
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
@@ -691,7 +647,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
     /**
      * @notice Only owner can set URI for this contract . 
-     * baseURI_ is added onto ERC721 using the _setBaseURI function
      */
     function setURI(string calldata baseURI_) external  onlyOwner {
         _setBaseURI(baseURI_);
