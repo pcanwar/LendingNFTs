@@ -404,7 +404,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
             emit PaymentLog(_counterId,  _i.isPaid );
         }  
         emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof );
-
         
     }
 
@@ -438,20 +437,15 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
         require(_m.isPaid != true, "is paid already");
         require(_timeExpired(loanTimesPaymentInterest[0]) >= clockTimeStamp(), "Term Time Expired");
-
-        // uint256 loanPayment = loanTimestampLoanPaymentLoanInterest[1] + loanTimestampLoanPaymentLoanInterest[3];
-        // require(IERC20(_m.paymentContract).allowance(msg.sender, receiverAddress) >= loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3],"Not enough allowance" );
-        // _assets[_counterId].termId++;
-        // require(calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid) <= fee_, "fees");  
         require(calculatedInterestFee(loanTimesPaymentInterest[3]) <= fee_, "fees");
         _assets[_counterId].isPaid = true;
-        _assets[_counterId].totalAmountPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, owner(), fee_);
         IERC20(_m.paymentContract).safeTransferFrom(msg.sender, ownerOf(_nft.lenderToken),  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3]);
+        _assets[_counterId].totalAmountPaid +=  loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3] ;
         _burn(_nft.borrowerToken);
         _burn(_nft.lenderToken);
         IERC721(_m.nftcontract).safeTransferFrom(receiverAddress, msg.sender, _m.nftTokenId);
-        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , calculatedInterestFee(_m.totalInterest - _m.totalInterestPaid),preProof, true );
+        emit PrePayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanTimesPaymentInterest[4] + loanTimesPaymentInterest[3], _m.termId , fee_ ,preProof, true );
 
     }
    
