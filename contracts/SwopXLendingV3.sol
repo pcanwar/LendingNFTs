@@ -742,7 +742,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         return super.tokenURI(tokenId)  ;
     }
 
-
     /*
     * @notice: burn function is called when all payment made or the nft gets defulted
     * @param tokenId uint256 ID of the token being burned
