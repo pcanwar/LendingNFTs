@@ -126,7 +126,6 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     /*                                        VARIABLES                                         */
     /********************************************************************************************/
     
-    
     address immutable receiverAddress = address(this);
     using Strings for uint256;
     using Counters for Counters.Counter;
