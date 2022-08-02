@@ -17,11 +17,11 @@ import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
+/* 
+    @title SwopXLendingAssets 
+    it is for borrowers and lenders to sign messages
+*/
 contract SwopXLendingAssets is EIP712 {
-
-    /* 
-        SwopXLendingAssets is for borrowers and lenders to sign messages
-    */
 
     constructor()  EIP712("SwopXLending","1.0"){
  
@@ -117,7 +117,10 @@ contract SwopXLendingAssets is EIP712 {
 
 }
 
-
+/* 
+    @title SwopXLendingV3 
+    it is for borrow utility tokens against NFTs
+*/
 contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
     /********************************************************************************************/
     /*                                        VARIABLES                                         */
@@ -128,38 +131,50 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     using Strings for uint256;
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
-    Counters.Counter private _IdCounter;  
-    Counters.Counter private _nftCounter;  
+    // _IdCounter, is used to keep track of a new loan. Every new loan is counted
+    // it is increased in the counter function
+    Counters.Counter private _IdCounter;
+    // _nftCounter, is used to keep track of a new NFTs. Every new loan is counted, there is two NFTs are created for (the borrower and lender)
+    // it is increased in the nftCounter function
+    Counters.Counter private _nftCounter; 
+    // txfee is only fee for startting a new loan and is called in submit function  
     uint256 private txfee;
+    // txInterestfee is fee for paying the interest fee. It is called in make payment, pre payment, and default functions
     uint256 private txInterestfee;
     // string private _baseMetadata; // it is added onto ERC721 
 
     struct LendingAssets {
         address paymentContract;    // ERC20 address 
         uint256 listingTime;        // start time stamp
-        uint256 totalPrincipal; 
-        uint256 totalInterest;
-        uint256 totalInterestPaid;
-        uint256 totalAmountLoan;
-        uint256 totalAmountPaid;
-        uint256 termId;
-        bool isPaid;
-        uint256 lenderNonce;
-        uint256 borrowerNonce;
-        address nftcontract;
-        uint256 nftTokenId;
-        bytes32 gist;
+        uint256 totalPrincipal;     // loan amount
+        uint256 totalInterest;      // laon interest 
+        uint256 totalInterestPaid;  // total paid of interest
+        uint256 totalAmountLoan;    // laon amount + loan interest
+        uint256 totalAmountPaid;    // total paid of amount and interest
+        uint256 termId;             // Loan term in schedule 
+        bool isPaid;                // If the loan is paid
+        uint256 lenderNonce;        // Nonce of lender sign
+        uint256 borrowerNonce;      // Nonce of borrowr sign
+        address nftcontract;        // NFT contract 
+        uint256 nftTokenId;         // NFT token ID
+        bytes32 gist;               // Root of merkle tree
     }
 
+    // Receipt is to keep track of the nft id
     struct Receipt {
-        uint256 lenderToken;
-        uint256 borrowerToken;
+        uint256 lenderToken;        // Lender NFT receipt
+        uint256 borrowerToken;      // borrower NFT receipt
     }
 
     mapping(uint256 => LendingAssets) private _assets;
     mapping(uint256 => Receipt) private _receipt;
 
+    // payment contract address has to be added by the admin/owner of the contract
+    // WETH, WBTC, USDT, USDC
     mapping(IERC20=> bool) private erc20Addrs;
+
+    // mapping each address and nonce that is used to sign a message => a boolean
+    // A sign can be canceled using the cancel function before run the submit function
     mapping(address => mapping(uint256 => bool)) private identifiedSignature;
 
     /********************************************************************************************/
@@ -181,33 +196,44 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         uint256 totalAmountLoan,
         bytes32 gist
     );
-
+    
+    // CancelLog event is called in the cancel function for canceling a sign
     event CancelLog(address indexed lender, uint256 nonce, bool IsUninterested);
     
+    // WithdrawLog event is called in the withdraw function for withdraing fees
     event WithdrawLog(address indexed contracts, address indexed account, uint amount);
     
+    // ExtendTimeLog event is called in the extendTheTime function for extending the laon term schedule
     event ExtendTimeLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, address lender,address borrower, uint256 currentTerm, uint256 totalAmountLoan, bytes32 gist  );
-        
+    
+    // PrePayLog event is called in the makePrePayment function 
     event PrePayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee, bytes32 [] preProof, bool isPaid);
 
+    // PayLog and PaymentLog event are called in the makePayment function 
     event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof);
 
     event PaymentLog(uint256 indexed counterId, bool isPaid);
 
-
+    // DefaultLog event is called in the default function 
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
     
     event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
-
+    
+    // FeeLog event is called in the resetTxFee function 
     event FeeLog(address account, uint256 loanFee, uint256 interestFee );
-
+    
+    // CryptoLog FeeLog event is called in the addToken function
     event CryptoLog(address contracts, bool isSupported);
-
     
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
     
+    /*
+    * @notice: only owner of the contract is allowed to change fees
+    * _fee is 2% of the laon amount and only runs in the submit function 
+    * _txInterestfee is 10% of the loan interest's fees 
+    */
     constructor() ERC721("SwopXLending", "SWING") {
         txfee = 200;
         txInterestfee = 1000;
@@ -217,31 +243,32 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     /*                                       MODIFIER FUNCTIONS                            */
     /********************************************************************************************/
   
-
+    /*
+    * A cryptocurrency address has to be supported
+    */
     modifier supportInterface(address _contract) {
         require(erc20Addrs[IERC20(_contract)] == true,"Contract address is not Supported ");
         _;
     }
 
+    /*
+    * No zero address is allowed
+    */
     modifier zeroAddress(address _contract) {
         require( _contract != address(0) , "Zero Address");
         _;
     }
 
-    modifier timeExpired(uint256 _time) {
-        require(_time>= block.timestamp,"Expired");
-        _;
-    }
+    // /*
+    // * if the loan is expired 
+    // */
+    // modifier timeExpired(uint256 _time) {
+    //     require(_time>= block.timestamp,"Expired");
+    //     _;
+    // }
 
     /********************************************************************************************/
-    /*                                       LOAN CONTRACT FUNCTIONS                            */
-    /* set functions:
-    **only owner**
-    *resetTxFee 
-    * addToken
-    **public
-    * submit, 
-    * pre
+    /*                                       LOAN CONTRACT FUNCTIONS                            */ 
     /********************************************************************************************/
   
     /*
@@ -249,7 +276,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     * @param _fee uint256 is the submit fees 
     * @param _txInterestfee interest's fees
     */
-    function resetTxFee(uint256 _fee, uint256 _txInterestfee) public onlyOwner { 
+    function resetTxFee(uint256 _fee, uint256 _txInterestfee) external onlyOwner { 
         txfee = _fee;
         txInterestfee = _txInterestfee;
         emit FeeLog(msg.sender, txfee, txInterestfee);
@@ -275,10 +302,13 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         return erc20Addrs[IERC20(_contract)];
     }
 
+    /*
+    * @notice: _timeExpired is called in make payment, pre payment, and default functions
+    * This is to give the borrower 7 days before their NFTs get defaulted or make a payment.
+    */
     function _timeExpired(uint256 time) private pure returns(uint256) {
         return 7 days + time;
     }
-
 
     /* 
     * @notice: assets to read from the storage on the contract
@@ -326,7 +356,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         }
       
     /* 
-    * @notice: a counter of the protocol 
+    * @notice: a counter of the protocol to track a loan is in the contract
     */  
     function counter() private returns(uint256 counterId){
         counterId = _IdCounter.current();
@@ -334,7 +364,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     }
 
     /* 
-    * @notice: a counter of the NFT  
+    * @notice: a counter of the NFT receipts 
     */  
     function nftCounter() private returns(uint256 counterId){
         counterId = _nftCounter.current();
@@ -342,10 +372,12 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     }
 
     /*
-    * @notice: the submit function is called by only the borrowers if they 
-    * agree on the lending schedule loan 
-    * @param nonce uint256 ID is  
-    * @param _paymentAddress address 
+    * the function does not accept the ZEROAddress modifer due to the deep stack issue 
+    * @notice: The submit function is called by the borrowers if they 
+    * agree on the lending schedule loan. The schedule is signed by the
+    * lender.
+    * @param nonce uint256 ID is an array of the lender's and borrower's nonces 
+    * @param _paymentAddress address is the crypto address
     * @param _lender address
     * @param _nftcontract address
     * @param _nftTokenId uint256
@@ -373,12 +405,8 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         isPaid:false,
         borrowerNonce: nonces[0],
         lenderNonce: nonces[1],
-
-        // lender:_lender,
         nftcontract:_nftcontract,
-        // nftOwner:msg.sender,
         nftTokenId:_nftTokenId,
-        // nftTokenId:nonceNFTId[1],
         gist: _gist
         });
         require(IERC721(_m.nftcontract).ownerOf( _m.nftTokenId) == msg.sender ,"Not NFT Owner");
@@ -424,13 +452,14 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
     /*
     * @notice: make payment is a way to pay a loan by a borrower, 
-    * the payment has to follow the term's array off chains and
-    * at the end of the term both nft tokens will get burned.
-    * There is two events needs to be run based on ERC721 
-    * @param _counterId uint256 main id of the lending process 
+    * the payment has to follow the term's array that is an off chain.
+    * At the end of the term both nft receipts will get burned.
+    * Backedn needs to listen also to the "Transfer" event
+    * when nft receipts get burned.
+    * @param _counterId uint256 main id of the loan 
     * @param term_ uint256 the term gets increased everytime the borrower pays its term
-    * @param loanTimestampPaymentInterest the arry of the timestamp, payment, and interest
-    * @param fee_ is taking from the current interest
+    * @param loanTimestampPaymentInterest is an arry of the timestamp, payment, and interest 
+    * @param fee_ is 10% that is taking from the current interest
     * @param proof of the _term 
     */
     function makePayment(uint256 _counterId, uint256 term_, 
@@ -474,7 +503,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     * @param term_ uint256 each term to pay the pre payment 
     * @param loanTimesPaymentInterest the arry of the term
     * @param preLoanTimes arry of the 0 term
-    * @param fee_ of the interest
+    * @param fee_ of the current interest of the 0's term
     * @param proof of the _term 
     * @param preProof of the 0 term's interest
     */
@@ -516,8 +545,9 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
     /* @notice defaultAsset function the only way for claiming the NFT if the borrowers do not make their payment's term
         * @param _counterId uint256 main id of the lending 
-        * @param loanTimesPaymentInterest uint256 is an arry of the term schedule time, payment, and interest
-        * @param fee_ uint256
+        * @param loanTimesPaymentInterest uint256 is an array of the term schedule time, payment, and interest
+        * the term has to match the tern in schedule, so any missing payment causes defaulting
+        * @param fee_ uint256 is the fee of the total remain interest.
         * @param proof of the _term array
     */
     function defaultAsset(uint256 _counterId, 
@@ -607,11 +637,11 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     * @notice: borrower needs to submit the lender new proof to extend the time with a new timestamps and payment intereset 
                 the offeredTime value has to be not expired with a current time.
     * @param _counterId uint256 Id of the receipt NFT
-    * @param interest uint256 new interest
+    * @param totalInterest uint256 new interest  
     * @param currentTerm_ uint256 the cuurent term that already paid 
     * @param _offeredTime uint256  it has to be > then current timestamp
-    * @param gist bytes32 new root
-    * @param signature bytes32 a new sig of the lender 
+    * @param gist bytes32 new root of the laon schedule
+    * @param signature bytes32 is an array of a new sig of the lender and borrower
     */
    function extendTheTime(uint256 [2] calldata nonces, uint256 _counterId, uint256 totalInterest, uint256 currentTerm_, uint256 _offeredTime, bytes32 gist ,
    bytes [2] calldata signatures) 
@@ -620,7 +650,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         Receipt memory _nft = _receipt[_counterId];
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(currentTerm_ == _m.termId,"term does not matched");
-        require(ownerOf(_nft.borrowerToken) == msg.sender,"Only NFT owner");
+        require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
 
         require(_verify(ownerOf(_nft.lenderToken), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
               _offeredTime, totalInterest, gist), signatures[1]), "Lender signature");
@@ -654,18 +684,18 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
         emit WithdrawLog(_contract, _to, _amount);
     }
 
-    /*
+    /* no need
     * @notice: to withdraw the ETH
     * @param _contract address of the erc20 token
     * @param _to address of the receiver address
     * @param _amount uint256 of amount 
     */
-    function withdraw(address payable to) external 
-    zeroAddress(to) onlyOwner {
-        uint256 getBalance = receiverAddress.balance;
-        to.transfer(getBalance);
-        emit WithdrawLog(receiverAddress, to, getBalance);
-    }
+    // function withdraw(address payable to) external 
+    // zeroAddress(to) onlyOwner {
+    //     uint256 getBalance = receiverAddress.balance;
+    //     to.transfer(getBalance);
+    //     emit WithdrawLog(receiverAddress, to, getBalance);
+    // }
 
     /**
      * @dev Returns the total number of loans.
