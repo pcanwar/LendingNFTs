@@ -1,4 +1,5 @@
 # SwopX Lending:
+
 Allows members to collateralize their NFT and access short and long term liquidity from Lenders via the SwopX Lending Protocol Smart Contract.
 
 When loan started, the borrower and lender will have NFT receipts, they can
@@ -16,10 +17,6 @@ An example of the loan terms:
     "4": ["1656719350", "10000000000000000000","1666666666666666667", "0","0"]
 
 }
-
-
-
-
 
 
 ## Address Info
