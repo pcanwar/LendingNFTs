@@ -211,7 +211,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     // PayLog and PaymentLog event are called in the makePayment function 
     event PayLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, uint256 paidAmount, uint256 currentTerm, uint256 fee,bytes32 [] proof);
 
-    event PaymentLog(uint256 indexed counterId, bool isPaid);
+    event PaymentLog(uint256 indexed counterId, address indexed nftcontract, uint256 tokenId, bool isPaid);
 
     // DefaultLog event is called in the default function 
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
@@ -488,7 +488,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
             _assets[_counterId].isPaid = true;
             LendingAssets memory _i = _assets[_counterId];
             IERC721(_m.nftcontract).safeTransferFrom(receiverAddress, msg.sender, _m.nftTokenId);
-            emit PaymentLog(_counterId,  _i.isPaid );
+            emit PaymentLog(_counterId,_m.nftcontract,  _m.nftTokenId,  _i.isPaid );
         }  
         emit PayLog(_counterId,  _m.nftcontract,  _m.nftTokenId, loanPayment, _m.termId, fee_, proof );
         
