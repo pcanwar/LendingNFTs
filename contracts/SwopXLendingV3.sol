@@ -371,8 +371,8 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
     }
 
     /*
-    * @Peckshield the function does not accept the ZEROAddress modifer due to 
-        the stack too deep, try removing local variables 
+    * @auditors the function does not accept the ZEROAddress modifer due to 
+        "the stack too deep, try removing local variables" 
     * @notice: The submit function is called by the borrowers if they 
     * agree on the lending schedule loan. The schedule is signed by the
     * lender.
