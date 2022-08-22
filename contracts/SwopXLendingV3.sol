@@ -215,9 +215,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
     // DefaultLog event is called in the default function 
     event DefaultLog(uint256 indexed counterId, address nftcontract, uint256 tokenId, address indexed lender, uint256 fee);
-    
-    event PusedTransferLog(address indexed nftcontract, address indexed to, uint256 tokenId);
-    
+        
     // FeeLog event is called in the resetTxFee function 
     event FeeLog(address account, uint256 loanFee, uint256 interestFee );
     
