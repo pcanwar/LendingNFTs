@@ -420,7 +420,7 @@ contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, 
 
         uint256 counterId = counter();
         _assets[counterId] = _m;
-
+        identifiedSignature[_lender][_m.lenderNonce] = true;
         _receipt[counterId].lenderToken = nftCounter();
         _receipt[counterId].borrowerToken = nftCounter();        
         Receipt memory _nft = _receipt[counterId];
