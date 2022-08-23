@@ -118,10 +118,10 @@ contract SwopXLendingAssets is EIP712 {
 }
 
 /* 
-    @title SwopXLendingV3 
+    @title SwopXLending
     it is for borrow utility tokens against NFTs
 */
-contract SwopXLendingV3 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
+contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
     /********************************************************************************************/
     /*                                        VARIABLES                                         */
     /********************************************************************************************/
