@@ -231,7 +231,7 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
     * _fee is 2% of the laon amount and only runs in the submit function 
     * _txInterestfee is 10% of the loan interest's fees 
     */
-    constructor() ERC721("SwopXLending", "SWING") {
+    constructor() ERC721("SwopX", "SWING") {
         txfee = 200;
         txInterestfee = 1000;
     }
