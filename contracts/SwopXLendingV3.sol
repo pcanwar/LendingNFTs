@@ -118,7 +118,7 @@ contract SwopXLendingAssets is EIP712 {
 }
 
 /* 
-    @title SwopXLending
+    @title SwopXLending 
     it is for borrow utility tokens against NFTs
 */
 contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver, SwopXLendingAssets, Pausable {
@@ -231,7 +231,7 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
     * _fee is 2% of the laon amount and only runs in the submit function 
     * _txInterestfee is 10% of the loan interest's fees 
     */
-    constructor() ERC721("SwopX", "SWING") {
+    constructor() ERC721("SwopXLending", "SWING") {
         txfee = 200;
         txInterestfee = 1000;
     }
@@ -409,6 +409,9 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
         });
         require(IERC721(_m.nftcontract).ownerOf( _m.nftTokenId) == msg.sender ,"Not NFT Owner");
         require(identifiedSignature[_lender][_m.lenderNonce] != true, "Lender is not interested");
+        
+        require(identifiedSignature[msg.sender][_m.borrowerNonce] != true, "Borrower is not interested");
+
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(IERC20(_m.paymentContract).allowance(_lender, receiverAddress) >= _m.totalPrincipal, "Not enough allowance" );
         require(_loanAmounLoanCost[2] >= calculatedFee(_m.totalPrincipal),"fee");
@@ -421,6 +424,9 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
         uint256 counterId = counter();
         _assets[counterId] = _m;
         identifiedSignature[_lender][_m.lenderNonce] = true;
+
+        identifiedSignature[msg.sender][_m.borrowerNonce] = true;
+
         _receipt[counterId].lenderToken = nftCounter();
         _receipt[counterId].borrowerToken = nftCounter();        
         Receipt memory _nft = _receipt[counterId];
@@ -649,11 +655,18 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
         require(_offeredTime >= clockTimeStamp(), "offer expired" );
         require(currentTerm_ == _m.termId,"term does not matched");
         require(ownerOf(_nft.borrowerToken) == msg.sender,"Only the Owner of the NFT borrower receipt");
-
+        
+        require(identifiedSignature[ownerOf(_nft.lenderToken)][nonces[1]] != true, "Lender is not interested"); 
+        require(identifiedSignature[msg.sender][nonces[0]] != true, "Borrower is not interested");
+        
         require(_verify(ownerOf(_nft.lenderToken), _hashextend(nonces[1], _m.nftcontract,_m.nftTokenId,
               _offeredTime, totalInterest, gist), signatures[1]), "Lender signature");
         
         require(_verify(msg.sender, _hashBorrower(nonces[0], _m.nftcontract,_m.nftTokenId, gist), signatures[0]), "Borrower signature");
+        
+        identifiedSignature[ownerOf(_nft.lenderToken)][nonces[1]] = true;
+        identifiedSignature[msg.sender][nonces[0]] = true;
+
         _assets[_counterId].gist = gist;
         // _assets[_counterId].loanTerm = loanTerm;
         _assets[_counterId].totalAmountLoan = _m.totalPrincipal + totalInterest;
