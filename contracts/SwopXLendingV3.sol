@@ -231,7 +231,7 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
     * _fee is 2% of the laon amount and only runs in the submit function 
     * _txInterestfee is 10% of the loan interest's fees 
     */
-    constructor() ERC721("SwopXLending", "SWING") {
+    constructor() ERC721("SwopX Lending", "SLPR") {
         txfee = 200;
         txInterestfee = 1000;
     }
@@ -567,6 +567,7 @@ contract SwopXLending is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, Re
         require(ownerOf(_nft.lenderToken)== msg.sender,"Only the Owner of the NFT lender receipt");
         require(_timeExpired(loanTimesPaymentInterest[0]) <= _time, "Not default yet");
         require(IERC20(_m.paymentContract).allowance(msg.sender,receiverAddress) >= fee_,"Not enough allowance" );
+
         uint256 remaining = _m.totalInterest - _m.totalInterestPaid;
         require(fee_ >= calculatedInterestFee(remaining),"fee");
         _burn(_nft.borrowerToken);
