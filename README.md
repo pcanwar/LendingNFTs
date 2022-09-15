@@ -18,7 +18,7 @@ An example of the loan terms:
 
 }
 
-
+```
 ## Address Info
 - Total borrowed
 - Total installment loans
@@ -36,7 +36,7 @@ An example of the loan terms:
 
 Install with npm
 
-```bash
+```sh
   npm install merkletreejs
   npm install keccak256
 ```
