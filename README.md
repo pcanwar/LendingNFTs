@@ -1,5 +1,12 @@
 # SwopX Lending:
 
+
+Lending Protocol: (in Ethereum and Avalanche)
+The lending contract allows NFT owners to collateralize their NFT and access short or long-term liquidity from lenders.
+
+Borrowers can collateralize their NFT in exchange for a loan from a lender. Furthermore, when a loan starts, lenders and borrowers will receive NFT receipts that they can sell to new owners. Owners of the NFT receipts are responsible for the loan; the new owner who receives the borrower’s receipt will have to pay back the loan, and the new owner of the lender’s receipt will receive the payments or collect the NFT if it defaults. The payment can be scheduled as a monthly payment. If the borrower misses one payment, the NFT gets defaulted. Borrowers can collateralize their NFT in exchange for a loan from a lender. Lenders can create loans with desired APY, duration, and Collateral.
+
+
 Allows members to collateralize their NFT and access short and long term liquidity from Lenders via the SwopX Lending Protocol Smart Contract.
 
 When loan started, the borrower and lender will have NFT receipts, they can
